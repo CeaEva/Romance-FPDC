@@ -7,6 +7,7 @@ public partial class Player3d : CharacterBody3D
 
     private GridMap _grid;
     private Node3D _node3d;
+    private Camera3D _camera;
 
     private Tween _turnTween;
 
@@ -15,19 +16,17 @@ public partial class Player3d : CharacterBody3D
 
         _grid = GetNodeOrNull<GridMap>("../GridMap");
         _node3d = GetNodeOrNull<Node3D>("..");
+        _camera = GetNodeOrNull<Camera3D>("../Camera3D");
 
         NodeTest(_grid);
         NodeTest(_node3d);
         Stabilize(GlobalPosition);
-
-
     }
 
     public override void _PhysicsProcess(double delta)
     {
 
-        PlayerTurn("TurnRight");
-        PlayerTurn("TurnLeft");
+        PlayerTurn();
 
     }
 
@@ -42,48 +41,68 @@ public partial class Player3d : CharacterBody3D
                 GD.Print("Path Found");
 
         }
-    }   
+    }
 
     private void Stabilize(Vector3 GivenPosition) //Get's Cell center Cordinants and makes it the GlobalPosition
     {
 
         _node3d.ToLocal(GivenPosition); // GlobalPos -> LocalPos
+
         var localPos = _grid.LocalToMap(GivenPosition);
         var newGlobalPos = _grid.MapToLocal(localPos);
         newGlobalPos = _node3d.ToGlobal(newGlobalPos);
         GlobalPosition = newGlobalPos;
+
         GD.Print($"Cell: {GlobalPosition}");
+
         
     }
 
-    private void PlayerTurn(string key)
+    private void PlayerTurn()
     {
 
         if (_turnTween?.IsRunning() == true) return;
 
         var CurrentRotation = GlobalRotationDegrees;
         float targetLocation = CurrentRotation.Y;
+        var CurrentPosition = _camera.GlobalPosition;
+        var TargetPosition = CurrentPosition;
 
-        switch (key)
+        string Tr = "TurnRight";
+        string Tl = "TurnLeft";
+        string Ta = "TrnRight";
+        string Sf = "StepForward";
+
+
+        if (Input.IsActionJustPressed(Tr))
         {
-            case "TurnRight":
-                if (Input.IsActionJustPressed(key))
-                {
-                    targetLocation = CurrentRotation.Y -= 90f;
-                    GD.Print($"{CurrentRotation}");
-                    TurnTween(targetLocation);
-                }
-                break;
-            case "TurnLeft":
-                if (Input.IsActionJustPressed(key))
-                {
-                   targetLocation = CurrentRotation.Y += 90f;
-                    GD.Print($"{CurrentRotation}");
-                    TurnTween(targetLocation);
-                }
-                break;
-
+            targetLocation = CurrentRotation.Y -= 90f;
+            GD.Print($"{CurrentRotation}");
+            TurnTween(targetLocation);
         }
+
+        else if (Input.IsActionJustPressed(Tl))
+        {
+            targetLocation = CurrentRotation.Y += 90f;
+            GD.Print($"{CurrentRotation}");
+            TurnTween(targetLocation);
+        }
+
+        else if (Input.IsActionJustPressed(Sf))
+        {
+            TargetPosition.X += 90f;
+            _camera.GlobalPosition = TargetPosition;
+            //TargetPosition = Stabilize(GlobalPosition);
+            GD.Print($"{CurrentRotation}");
+            //TurnTween(targetLocation);
+        }
+        else
+        {
+            return;
+        }
+             
+           
+        
     }
 
     private void TurnTween(float targetY)
