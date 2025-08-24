@@ -1,0 +1,15 @@
+[gd_scene load_steps=4 format=3 uid="uid://5p3rggbiwdan"]
+
+[ext_resource type="Script" uid="uid://clxvu0hgh5ufj" path="res://scripts/core/Game.cs" id="1_nrstr"]
+[ext_resource type="Script" uid="uid://bvagsns08kv7q" path="res://scripts/core/SceneHandler.cs" id="2_fun78"]
+[ext_resource type="PackedScene" uid="uid://dmd4enflhah2p" path="res://scenes/ui/HUD.tscn" id="3_5pwbx"]
+
+[node name="Main" type="Node"]
+script = ExtResource("1_nrstr")
+
+[node name="SceneHandler" type="Node" parent="."]
+script = ExtResource("2_fun78")
+
+[node name="UiRoot" type="CanvasLayer" parent="."]
+
+[node name="CanvasLayer" parent="UiRoot" instance=ExtResource("3_5pwbx")]
