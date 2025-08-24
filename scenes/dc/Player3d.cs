@@ -16,17 +16,17 @@ public partial class Player3d : CharacterBody3D
 
         _grid = GetNodeOrNull<GridMap>("../GridMap");
         _node3d = GetNodeOrNull<Node3D>("..");
-        _camera = GetNodeOrNull<Camera3D>("../Camera3D");
+        _camera = GetNodeOrNull<Camera3D>("../Player3d/Camera3D");
 
         NodeTest(_grid);
-        NodeTest(_node3d);
+        NodeTest(_camera);
         Stabilize(GlobalPosition);
     }
 
     public override void _PhysicsProcess(double delta)
     {
-
         PlayerTurn();
+
 
     }
 
@@ -65,8 +65,9 @@ public partial class Player3d : CharacterBody3D
 
         var CurrentRotation = GlobalRotationDegrees;
         float targetLocation = CurrentRotation.Y;
-        var CurrentPosition = _camera.GlobalPosition;
+        var CurrentPosition = GlobalPosition;
         var TargetPosition = CurrentPosition;
+        
 
         string Tr = "TurnRight";
         string Tl = "TurnLeft";
@@ -90,12 +91,15 @@ public partial class Player3d : CharacterBody3D
 
         else if (Input.IsActionJustPressed(Sf))
         {
-            TargetPosition.X += 90f;
-            _camera.GlobalPosition = TargetPosition;
-            //TargetPosition = Stabilize(GlobalPosition);
-            GD.Print($"{CurrentRotation}");
-            //TurnTween(targetLocation);
+
+             float stepDistance = _grid.CellSize.Z;
+             // Forward direction is the node's -Z axis in Godot
+             Vector3 forward = -GlobalTransform.Basis.Z;
+
+             // Update position
+             GlobalPosition += forward * stepDistance;
         }
+
         else
         {
             return;
