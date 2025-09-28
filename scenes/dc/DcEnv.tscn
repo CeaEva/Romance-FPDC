@@ -1,8 +1,8 @@
-[gd_scene load_steps=7 format=3 uid="uid://dlhuxng6iyyow"]
+[gd_scene load_steps=10 format=3 uid="uid://dlhuxng6iyyow"]
 
-[ext_resource type="Script" uid="uid://jp1jajc8ud2e" path="res://scenes/dc/DcEnv.cs" id="1_jgqmm"]
 [ext_resource type="MeshLibrary" uid="uid://ck7c75ylieykr" path="res://assets/models/Env/TestCellMesh.tres" id="1_u0dj1"]
 [ext_resource type="Script" uid="uid://buc568tewn65b" path="res://scenes/dc/Player3d.cs" id="2_u0dj1"]
+[ext_resource type="Texture2D" uid="uid://xuutoutbx501" path="res://assets/art/DummySprites/ElizabethDummy.png" id="5_woqx5"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_jgqmm"]
 
@@ -10,10 +10,46 @@
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_u0dj1"]
 
+[sub_resource type="Animation" id="Animation_woqx5"]
+resource_name = "DialougeBottomAni"
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CanvasLayer/Control/TextureRect2:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0, 0.6),
+"transitions": PackedFloat32Array(0.287175, 0.267944),
+"update": 0,
+"values": [Vector2(128, 216), Vector2(128, 69)]
+}
+
+[sub_resource type="Animation" id="Animation_6uohu"]
+length = 0.001
+tracks/0/type = "value"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("CanvasLayer/Control/TextureRect2:position")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = {
+"times": PackedFloat32Array(0),
+"transitions": PackedFloat32Array(1),
+"update": 0,
+"values": [Vector2(104, 78)]
+}
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_id3r5"]
+_data = {
+&"DialougeBottomAni": SubResource("Animation_woqx5"),
+&"RESET": SubResource("Animation_6uohu")
+}
+
 [node name="Node3D" type="Node3D"]
-script = ExtResource("1_jgqmm")
 
 [node name="GridMap" type="GridMap" parent="."]
+visible = false
 mesh_library = ExtResource("1_u0dj1")
 physics_material = SubResource("PhysicsMaterial_jgqmm")
 cell_size = Vector3(4, 4, 4)
@@ -25,6 +61,8 @@ metadata/_editor_floor_ = Vector3(0, -1, 0)
 [node name="Player3d" type="CharacterBody3D" parent="."]
 transform = Transform3D(1, 0, 1.74846e-07, 0, 1, 0, -1.74846e-07, 0, 1, 0, 0.5, 0)
 script = ExtResource("2_u0dj1")
+StepDuration = 0.1
+EnocunterPercent = 0.2
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Player3d"]
 mesh = SubResource("BoxMesh_eymbm")
@@ -34,3 +72,24 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="Player3d"]
 shape = SubResource("BoxShape3D_u0dj1")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="Control" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 106.0
+offset_bottom = 57.0
+
+[node name="TextureRect2" type="TextureRect" parent="CanvasLayer/Control"]
+layout_mode = 0
+offset_left = 104.0
+offset_top = 78.0
+offset_right = 179.0
+offset_bottom = 153.0
+texture = ExtResource("5_woqx5")
+
+[node name="DialougeUIBackground" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_id3r5")
+}

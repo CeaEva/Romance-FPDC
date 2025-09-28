@@ -1,8 +1,8 @@
 [gd_scene load_steps=7 format=4 uid="uid://dcdecl71k76e5"]
 
-[ext_resource type="Texture2D" uid="uid://c5jb8qbqamtxm" path="res://assets/art/DummySprite.png" id="1_7xh8e"]
 [ext_resource type="Script" uid="uid://do1wl48j1ix8v" path="res://scenes/overworld2d/Player.cs" id="2_qk1w3"]
 [ext_resource type="Texture2D" uid="uid://d05f2k52gu7h4" path="res://assets/art/SprDummy.png" id="2_quu4u"]
+[ext_resource type="Texture2D" uid="uid://bu0mlje4vuddt" path="res://assets/art/DummySprites/ElleDummyOverworld.png" id="3_qk1w3"]
 
 [sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_qk1w3"]
 texture = ExtResource("2_quu4u")
@@ -28,7 +28,7 @@ script = ExtResource("2_qk1w3")
 [node name="Sprite2D" type="Sprite2D" parent="Player"]
 z_index = 1
 position = Vector2(65, -54)
-texture = ExtResource("1_7xh8e")
+texture = ExtResource("3_qk1w3")
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="Player"]
 z_index = 1
@@ -37,4 +37,3 @@ shape = SubResource("RectangleShape2D_quu4u")
 
 [node name="Camera" type="Camera2D" parent="Player"]
 position = Vector2(65, -54)
-zoom = Vector2(3, 3)

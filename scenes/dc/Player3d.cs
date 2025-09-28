@@ -1,44 +1,65 @@
 using Godot;
-
+using System.Threading.Tasks;
+using DialogueManagerRuntime;
+using GodotRng = Godot.RandomNumberGenerator;
 public partial class Player3d : CharacterBody3D
 {
 
+    //Exports
     [Export] public float TurnDuration { get; set; } = 0.3f;
+    [Export] public float StepDuration { get; set; }
 
+    [Export(PropertyHint.Range, "0,1,0.01")]
+    public float EnocunterPercent { get; set; }
+    [Export] public int MinStepsBetweenEncounters { get; set; }
+
+    //Flags
+    public bool InEncounter = false;
+
+    private readonly GodotRng _rng = new GodotRng();
+    private int _stepsSinceLast;
+
+    //Nodes
     private GridMap _grid;
     private Node3D _node3d;
     private Camera3D _camera;
-
+    private AnimationPlayer _animationPlayer;
+    private RichTextLabel _dialogueLabel;
     private Tween _turnTween;
+    private PackedScene _combatTscn;
 
     public override void _Ready()
     {
-
+        //Establishing Node Path's
         _grid = GetNodeOrNull<GridMap>("../GridMap");
         _node3d = GetNodeOrNull<Node3D>("..");
         _camera = GetNodeOrNull<Camera3D>("../Player3d/Camera3D");
-
+        _animationPlayer = GetNodeOrNull<AnimationPlayer>("../DialougeUIBackground");
+        _dialogueLabel = GetNodeOrNull<RichTextLabel>("../CanvasLayer/Control/TextureRect/DialogueLabel");
+        _combatTscn = ResourceLoader.Load<PackedScene>("res://scenes/ui/CombatScn.tscn");
         NodeTest(_grid);
         NodeTest(_camera);
         Stabilize(GlobalPosition);
+        GD.Print(_stepsSinceLast);
     }
 
     public override void _PhysicsProcess(double delta)
     {
-        PlayerTurn();
 
+        PlayerMove();
 
     }
 
-    public void NodeTest(Node TestNode)
+
+    public void NodeTest(Node TestNode) //Good for testing wether a node exsist's in tree
     {
         if (TestNode == null) // Test' wether GirdMap is in NodeTree
         {
-                GD.Print("No Path Found");
+            GD.Print("No Path Found");
         }
         else
         {
-                GD.Print("Path Found");
+            GD.Print("Path Found");
 
         }
     }
@@ -55,19 +76,19 @@ public partial class Player3d : CharacterBody3D
 
         GD.Print($"Cell: {GlobalPosition}");
 
-        
+
     }
 
-    private void PlayerTurn()
+    public async void PlayerMove() // Not _UnhandledInput due to needing continuious held input's needed for movement
     {
 
-        if (_turnTween?.IsRunning() == true) return;
+        if (_turnTween?.IsRunning() == true || InEncounter) return;
 
         var CurrentRotation = GlobalRotationDegrees;
         float targetLocation = CurrentRotation.Y;
         var CurrentPosition = GlobalPosition;
         var TargetPosition = CurrentPosition;
-        
+
 
         string Tr = "TurnRight";
         string Tl = "TurnLeft";
@@ -75,50 +96,113 @@ public partial class Player3d : CharacterBody3D
         string Sf = "StepForward";
 
 
-        if (Input.IsActionJustPressed(Tr))
+        if (Input.IsActionPressed(Tr))
         {
             targetLocation = CurrentRotation.Y -= 90f;
             GD.Print($"{CurrentRotation}");
-            TurnTween(targetLocation);
+            await TurnTween(targetLocation);
         }
 
-        else if (Input.IsActionJustPressed(Tl))
+        else if (Input.IsActionPressed(Tl))
         {
             targetLocation = CurrentRotation.Y += 90f;
             GD.Print($"{CurrentRotation}");
-            TurnTween(targetLocation);
+            await TurnTween(targetLocation);
         }
 
-        else if (Input.IsActionJustPressed(Sf))
+        else if (Input.IsActionPressed(Sf))
         {
+            float stepDistance = _grid.CellSize.Z;
+            // Forward direction is the node's -Z axis in Godot
+            //Vector3 forward = GlobalTransform.Basis.Z.Normalized();
 
-             float stepDistance = _grid.CellSize.Z;
-             // Forward direction is the node's -Z axis in Godot
-             Vector3 forward = -GlobalTransform.Basis.Z;
+            //Vector3 TweenPosition = forward * stepDistance; 
 
-             // Update position
-             GlobalPosition += forward * stepDistance;
+            await MoveTween(stepDistance);
+
+            EncounterChance();
+        }
+
+        else if (Input.IsActionJustPressed("DialougeTest"))
+        {
+            ShowD();
         }
 
         else
         {
             return;
         }
-             
-           
-        
+
     }
 
-    private void TurnTween(float targetY)
+    private async Task TurnTween(float targetY)
     {
         _turnTween?.Kill();
         _turnTween = CreateTween()
-            .SetProcessMode(Tween.TweenProcessMode.Physics)        
+            .SetProcessMode(Tween.TweenProcessMode.Physics)
             .SetEase(Tween.EaseType.InOut)
             .SetTrans(Tween.TransitionType.Cubic);
 
-        
+
         _turnTween.TweenProperty(this, "global_rotation_degrees:y", targetY, TurnDuration);
 
+        await ToSignal(_turnTween, Tween.SignalName.Finished);
+
+        _turnTween = null;
+        Stabilize(GlobalPosition);
+
+    }
+
+    private async Task MoveTween(float stepDistance)
+    {
+        _turnTween?.Kill();
+        Vector3 forward = (-GlobalTransform.Basis.Z).Normalized();
+        Vector3 targetPos = GlobalPosition + forward * stepDistance;
+        _turnTween = CreateTween()
+           .SetProcessMode(Tween.TweenProcessMode.Physics)
+           .SetTrans(Tween.TransitionType.Linear);
+
+
+        _turnTween.TweenProperty(this, "global_position", targetPos, StepDuration);
+
+        await ToSignal(_turnTween, Tween.SignalName.Finished);
+
+        _turnTween = null;
+        Stabilize(GlobalPosition);
+    }
+
+    private async void ShowD() //Simple Dialogue test
+    {
+
+        var dialogue = GD.Load<Resource>("res://data/Dialogue/waaa.dialogue");
+        DialogueManager.ShowDialogueBalloon(dialogue, "start");
+
+    }
+
+    private void EncounterChance()
+    {
+
+        if (InEncounter) return;
+
+        _stepsSinceLast++;
+
+        if (_stepsSinceLast < MinStepsBetweenEncounters)
+            return;
+
+
+        if (_rng.Randf() <= EnocunterPercent)
+            StartEncounter();
+
+    }
+
+    private void StartEncounter()
+    {
+        InEncounter = true;
+        var CombatScn = _combatTscn.Instantiate();
+        AddChild(CombatScn);
+
+        GD.Print("Encounter started :");
     }
 }
+
+
