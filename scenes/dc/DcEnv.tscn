@@ -1,7 +1,7 @@
 [gd_scene load_steps=10 format=3 uid="uid://dlhuxng6iyyow"]
 
 [ext_resource type="MeshLibrary" uid="uid://ck7c75ylieykr" path="res://assets/models/Env/TestCellMesh.tres" id="1_u0dj1"]
-[ext_resource type="Script" uid="uid://buc568tewn65b" path="res://scenes/dc/Player3d.cs" id="2_u0dj1"]
+[ext_resource type="Script" uid="uid://buc568tewn65b" path="res://scripts/dc/Player3d.cs" id="2_u0dj1"]
 [ext_resource type="Texture2D" uid="uid://xuutoutbx501" path="res://assets/art/DummySprites/ElizabethDummy.png" id="5_woqx5"]
 
 [sub_resource type="PhysicsMaterial" id="PhysicsMaterial_jgqmm"]
@@ -49,7 +49,6 @@ _data = {
 [node name="Node3D" type="Node3D"]
 
 [node name="GridMap" type="GridMap" parent="."]
-visible = false
 mesh_library = ExtResource("1_u0dj1")
 physics_material = SubResource("PhysicsMaterial_jgqmm")
 cell_size = Vector3(4, 4, 4)
@@ -63,6 +62,7 @@ transform = Transform3D(1, 0, 1.74846e-07, 0, 1, 0, -1.74846e-07, 0, 1, 0, 0.5, 
 script = ExtResource("2_u0dj1")
 StepDuration = 0.1
 EnocunterPercent = 0.2
+MinStepsBetweenEncounters = 50
 
 [node name="MeshInstance3D" type="MeshInstance3D" parent="Player3d"]
 mesh = SubResource("BoxMesh_eymbm")
