@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="ActorData" load_steps=3 format=3 uid="uid://dv3owbhtnjc6i"]
+
+[ext_resource type="Resource" uid="uid://dt42dcw25eth" path="res://data/resources/DummyBrain.tres" id="1_4uajf"]
+[ext_resource type="Script" uid="uid://byaq4vsxoo71l" path="res://scripts/Resources/ActorData.cs" id="1_o5nc4"]
+
+[resource]
+script = ExtResource("1_o5nc4")
+Name = "Elle"
+Brain = ExtResource("1_4uajf")
+MaxHp = 50
+MaxDp = 10
+CurrentHp = 50
+CurrentDp = 10
+Str = 5
+Mag = 5
+Vit = 5
+Con = 5
+Spd = 30
+Lck = 3
+metadata/_custom_type_script = "uid://byaq4vsxoo71l"

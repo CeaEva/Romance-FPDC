@@ -1,0 +1,7 @@
+[gd_resource type="Resource" script_class="DummyBrain" load_steps=2 format=3 uid="uid://dt42dcw25eth"]
+
+[ext_resource type="Script" uid="uid://ct8v3yho4wclc" path="res://scripts/Resources/Brains/DummyBrain.cs" id="1_00sbn"]
+
+[resource]
+script = ExtResource("1_00sbn")
+metadata/_custom_type_script = "uid://ct8v3yho4wclc"

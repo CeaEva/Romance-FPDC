@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ActorData" load_steps=2 format=3 uid="uid://dyiee4i8k5myl"]
+
+[ext_resource type="Script" uid="uid://byaq4vsxoo71l" path="res://scripts/Resources/ActorData.cs" id="1_v0876"]
+
+[resource]
+script = ExtResource("1_v0876")
+Name = "Dummy"
+MaxHp = 30
+MaxDp = 6
+CurrentHp = 30
+CurrentDp = 6
+Str = 5
+Mag = 5
+Vit = 5
+Con = 5
+Spd = 0
+Lck = 5
+metadata/_custom_type_script = "uid://byaq4vsxoo71l"

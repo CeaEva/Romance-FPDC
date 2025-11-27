@@ -1,0 +1,16 @@
+[remap]
+
+importer="dialogue_manager"
+importer_version=15
+type="Resource"
+uid="uid://bu4gcvgrp5h5n"
+path="res://.godot/imported/waaa.dialogue-f2ec21058fe41164c8637b9c64d81dbc.tres"
+
+[deps]
+
+source_file="res://data/Dialogue/waaa.dialogue"
+dest_files=["res://.godot/imported/waaa.dialogue-f2ec21058fe41164c8637b9c64d81dbc.tres"]
+
+[params]
+
+defaults=true
