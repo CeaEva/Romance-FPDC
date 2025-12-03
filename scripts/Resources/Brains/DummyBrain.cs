@@ -11,33 +11,33 @@ namespace Resources
     public partial class DummyBrain : Resource
     {
 
-        public void Tick(DummyEnemy me, SceneTree playerGroup)
+        public void Tick(DummyEnemy me, List<PlayerActor> playerGroup)
         {
             BasicAttack(me, playerGroup);
+            GD.Print("Enemy: Ticking");
         }
 
     
-     private void BasicAttack(DummyEnemy me, SceneTree tree)
+     private void BasicAttack(DummyEnemy me, List<PlayerActor> tree)
      
         {
-            // Get all nodes in the "Players" group
-            var nodes = tree.GetNodesInGroup("Players"); // Godot.Collections.Array<Node>
+            
+            if (tree.Count == 0)
+            {
+                GD.Print("No actors to attack");
+                return;
+            }
 
             List<int> actorHealth = new();
-            List<PlayerActor> actors = new();
 
             // First pass: collect actors + their HP
-            foreach (Node node in nodes)
+            foreach (Node node in tree)
             {
                 if (node is PlayerActor a)
                 {
-                    actors.Add(a);
                     actorHealth.Add(a.CurrentHp);
                 }
             }
-
-            if (actors.Count == 0)
-                return;
 
             // Simple example: target the lowest HP actor
             int minHpIndex = 0;
@@ -47,7 +47,7 @@ namespace Resources
                     minHpIndex = i;
             }
 
-            PlayerActor target = actors[minHpIndex];
+            PlayerActor target = tree[minHpIndex];
             target.CurrentHp -= me.EnemyStats.Str;
             GD.Print("HP is " + target.CurrentHp);
         }

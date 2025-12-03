@@ -50,7 +50,8 @@ namespace Combat
         public override void _Ready()
         {
             menu = GetNodeOrNull<NinePatchRect>("../PlayerActor/ElleTab/BattleMenu");
-            _playerStats = (ActorData)NewSave.I.ElleStats;
+            var StatsPath = GD.Load<ActorData>("res://data/PlayerActors/ElleStats.tres");
+            _playerStats = (ActorData)StatsPath.Duplicate();
             AddToGroup("PlayerGroup");
             Name = _playerStats.Name;
             _currentHp = _playerStats.CurrentHp;

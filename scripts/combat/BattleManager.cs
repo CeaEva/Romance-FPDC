@@ -8,6 +8,16 @@ namespace Combat
 
     public partial class BattleManager : Node
     {
+
+        public List<PlayerActor> PlayerList
+        {
+            get => _playerList; private set
+            {
+                _playerList = value;
+            }
+
+        }
+
         List<Node> _allActors = new List<Node>();
         List<PlayerActor> _playerList = new List<PlayerActor>();
         List<DummyEnemy> _enemyList = new List<DummyEnemy>();
@@ -55,16 +65,31 @@ namespace Combat
             
             foreach (PlayerActor n in _playerList)
             {
+                if (n.State != CombatState.Wait)
+                    break;
+
                 n.Atb += n.PlayerStats.Spd;
                 GD.Print(n.Atb);
                 atbBar.Value = n.Atb;
             }
+
+            foreach (DummyEnemy n in _enemyList)
+            {
+                if (n.State != CombatState.Wait)
+                    break;
+
+                n.Atb += n.EnemyStats.Spd;
+                GD.Print(n.Atb + ", " + n.State);
+                //atbBar.Value = n.Atb;
+            }
+
             StateCheck();
         }
 
         private void StateCheck()
         {
-            var atbMax = 100; 
+            var atbMax = 100;
+
             foreach (PlayerActor n in _playerList)
             {
                 if (n.Atb >= atbMax)
@@ -73,7 +98,15 @@ namespace Combat
                     GD.Print("Player can menu");
                 }
 
-                
+            }
+
+            foreach (DummyEnemy n in _enemyList)
+            {
+                if (n.Atb >= atbMax)
+                {
+                    n.State = CombatState.Queued;
+                    GD.Print("Enemy can Tick");
+                }
 
             }
             
