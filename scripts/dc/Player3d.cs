@@ -30,6 +30,7 @@ namespace DC
         private RichTextLabel _dialogueLabel;
         private Tween _turnTween;
         private PackedScene _combatTscn;
+        private Node _combatInstance;
 
         public override void _Ready()
         {
@@ -201,9 +202,20 @@ namespace DC
 
         private void StartEncounter()
         {
+            if (_combatInstance != null && IsInstanceValid(_combatInstance))
+            {
+                GD.Print("Encounter already running; skipping duplicate spawn.");
+                return;
+            }
             InEncounter = true;
-            var CombatScn = _combatTscn.Instantiate();
-            AddChild(CombatScn);
+            _combatInstance = _combatTscn.Instantiate();
+            AddChild(_combatInstance);
+            _combatInstance.TreeExiting += () =>
+            {
+                _combatInstance = null;
+                InEncounter = false;
+                _stepsSinceLast = 0;
+            };
 
             GD.Print("Encounter started :");
         }

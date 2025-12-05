@@ -39,10 +39,11 @@ namespace Resources
 
         }
 
-        public void StandardAttack(DummyEnemy Target, ActorData Attacker)
+        public int StandardAttack(DummyEnemy Target, ActorData Attacker)
         {
-            Target.CurrentHp = Target.CurrentHp - Attacker.Str;
+            var damage = Target.CurrentHp - Attacker.Str;
             GD.Print("CurrentHP: " + Target.CurrentHp + "MaxHP: " + Target.EnemyStats.MaxHp);
+            return damage;
         }
 
 

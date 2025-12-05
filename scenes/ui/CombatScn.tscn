@@ -119,14 +119,20 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_o0fav")
 
-[node name="BattleMenu" type="NinePatchRect" parent="PlayerActor/ElleTab"]
+[node name="AtbBar" type="ProgressBar" parent="PlayerActor"]
+unique_name_in_owner = true
+offset_left = 186.0
+offset_top = 138.0
+offset_right = 238.0
+offset_bottom = 165.0
+
+[node name="BattleMenu" type="NinePatchRect" parent="PlayerActor"]
 unique_name_in_owner = true
 z_index = -2
-layout_mode = 0
-offset_left = -106.0
-offset_top = -143.0
-offset_right = -62.0
-offset_bottom = -61.0
+offset_left = 3.5
+offset_top = 49.0
+offset_right = 47.5
+offset_bottom = 131.0
 texture = ExtResource("1_03b6v")
 region_rect = Rect2(0, 0, 22, 19)
 patch_margin_left = 6
@@ -136,7 +142,7 @@ patch_margin_bottom = 6
 axis_stretch_horizontal = 2
 axis_stretch_vertical = 2
 
-[node name="BattleOptionsLabel" type="RichTextLabel" parent="PlayerActor/ElleTab/BattleMenu"]
+[node name="BattleOptionsLabel" type="RichTextLabel" parent="PlayerActor/BattleMenu"]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = -1
@@ -152,15 +158,28 @@ theme_override_colors/default_color = Color(0.358283, 0.182053, 0.480469, 1)
 theme_override_constants/line_separation = 2
 theme_override_fonts/normal_font = ExtResource("3_psywc")
 theme_override_font_sizes/normal_font_size = 6
-text = "> Attack
-Items"
 
-[node name="AtbBar" type="ProgressBar" parent="PlayerActor"]
+[node name="DummyEnemy2" type="Node" parent="."]
 unique_name_in_owner = true
-offset_left = 186.0
-offset_top = 138.0
-offset_right = 238.0
-offset_bottom = 165.0
+script = ExtResource("6_psywc")
+StatsPath = "res://data/resources/DummyEnemy.tres"
+Brain = ExtResource("2_f5dbq")
+
+[node name="EnemySprite" type="TextureRect" parent="DummyEnemy2"]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -51.0
+offset_top = -29.0
+offset_right = -11.0
+offset_bottom = 11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("7_psywc")
+expand_mode = 1
+stretch_mode = 4
 
 [node name="BattleManager" type="Node" parent="."]
 unique_name_in_owner = true

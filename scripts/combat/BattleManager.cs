@@ -18,21 +18,30 @@ namespace Combat
 
         }
 
+        public List<DummyEnemy> EnemyList
+        {
+            get => _enemyList; private set
+            {
+                _enemyList = value;
+            }
+
+        }
+
         List<Node> _allActors = new List<Node>();
         List<PlayerActor> _playerList = new List<PlayerActor>();
         List<DummyEnemy> _enemyList = new List<DummyEnemy>();
         //Queue _turnQueue = new();
-        ProgressBar atbBar;
+        ProgressBar _atbBar;
 
         public override void _Ready()
         {
             
             ActorsToList("EnemyGroup");
             ActorsToList("PlayerGroup");
-            GD.Print("Enemies: " + _enemyList + " Player: " + _playerList);
+            GD.Print("Enemies: " + EnemyNames() +" " +" Player: " + _playerList);
             var atbTimer = GetNode<Timer>("AtbTimer");
             atbTimer.Timeout += AtbTick;
-            atbBar = GetNodeOrNull<ProgressBar>("%AtbBar");
+            _atbBar = GetNodeOrNull<ProgressBar>("%AtbBar");
             
         }
 
@@ -70,7 +79,7 @@ namespace Combat
 
                 n.Atb += n.PlayerStats.Spd;
                 GD.Print(n.Atb);
-                atbBar.Value = n.Atb;
+                _atbBar?.SetValueNoSignal(n.Atb);
             }
 
             foreach (DummyEnemy n in _enemyList)
@@ -92,6 +101,9 @@ namespace Combat
 
             foreach (PlayerActor n in _playerList)
             {
+                if (n.State == CombatState.Menu || n.State == CombatState.Select)
+                    return;
+
                 if (n.Atb >= atbMax)
                 {
                     n.State = CombatState.Menu;
@@ -111,6 +123,21 @@ namespace Combat
             }
             
 
+
+        }
+
+        private string EnemyNames()
+        {
+            var enemyString = "";
+
+            foreach(DummyEnemy n in _enemyList)
+            {
+                enemyString = n.Name + "";
+
+            }
+
+
+            return enemyString;
 
         }
 

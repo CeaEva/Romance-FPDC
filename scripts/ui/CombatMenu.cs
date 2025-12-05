@@ -27,9 +27,11 @@ namespace Combat
 
         DummyEnemy _dummyEnemy;
         BattleManager _battleManager;
+        List<DummyEnemy> _enemyList;
         List<string> _cursor = ["Attack", "Items"];
         int _cursorLen;
         int _cursorIndex;
+        int _subCursorIndex;
         RichTextLabel _optionsLabel;
         PlayerActor _player;
 
@@ -44,6 +46,8 @@ namespace Combat
             _battleManager = GetNodeOrNull<BattleManager>("%BattleManager");
             _player = GetNodeOrNull<PlayerActor>("%PlayerActor");
             _cursorLen = _cursor.Count;
+            _enemyList = _battleManager.EnemyList;
+            DrawMenu(_cursor);
 
 
         }
@@ -52,50 +56,81 @@ namespace Combat
         {
             if (@event.IsActionPressed("Confirm"))
             {
-                switch (_cursorIndex)
-                {
-                    case 0:
-                        _state = MenuState.StandardAttack;
-                        break;
-                    case 1:
-                        _state = MenuState.Items;
-                        break;
-                }
+                UsePressed();
             }
             if (@event.IsActionPressed("MoveUp"))
             {
                 
                 _cursorIndex = (_cursorIndex - 1 + _cursor.Count) % _cursor.Count;
-                CursorUpdate();
+                //LabelUpdate();
                 GD.Print(_cursorIndex);
             }
             if (@event.IsActionPressed("MoveDown"))
             {
                 
                 _cursorIndex = (_cursorIndex + 1) % _cursor.Count;
-                CursorUpdate();
+                DrawMenu(_cursor, @event);
+            }
+            if (@event.IsActionPressed("MoveRight"))
+            {
+
+                DrawMenu(_cursor, @event);
+                
             }
         }    
 
-            
-
-        private void CursorUpdate()
+    
+    
+        private void UsePressed()
         {
 
-            _optionsLabel.Clear();
-
-            switch (_cursor[_cursorIndex])
+            switch (_cursorIndex)
             {
-                case "Attack":
-                    _optionsLabel.AppendText(">Attack \n Items");
+                case 0:
+                    _state = MenuState.StandardAttack;
+                    _player.State = CombatState.Select;
                     break;
-                case "Items":
-                    _optionsLabel.AppendText("Attack \n >Items");
+                case 1:
+                    _state = MenuState.Items;
                     break;
             }
+
         }
 
-        
+       
+
+        private void DrawMenu(List<string> elements, InputEvent @event = "null")
+        {
+            _optionsLabel.Clear();
+
+            foreach (string e in elements)
+            {
+                if (elements[_cursorIndex] == e)
+                    _optionsLabel.AppendText(">" + e + "\n");
+                else
+                    _optionsLabel.AppendText(e + "\n");
+
+            }
+
+            if (@event.IsActionPressed("MoveRight") || @event.IsActionPressed("MoveLeft"))
+            {
+                switch (_state)
+                {
+                    case MenuState.Main :
+                        //TODO: add select logic
+                        break;
+                    case MenuState.StandardAttack:
+                        _subCursorIndex = (_subCursorIndex + 1) % elements.Count;
+                        GD.Print(_enemyList[_subCursorIndex].Name);
+                         break;
+
+
+                }
+
+            }
+
+
+        }
 
     }
 }

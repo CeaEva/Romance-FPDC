@@ -35,7 +35,7 @@ public partial class DummyEnemy : Node, IActor
     public override void _Ready()
     {
        
-        _sprite = GetNodeOrNull<TextureRect>("../DummyEnemy/EnemySprite");
+        _sprite = GetNodeOrNull<TextureRect>("EnemySprite");
         _sprite.Visible = true;
         var baseStats = GD.Load<ActorData>(StatsPath);
         EnemyStats = (ActorData)baseStats.Duplicate();
