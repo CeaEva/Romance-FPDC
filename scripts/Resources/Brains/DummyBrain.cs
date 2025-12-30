@@ -11,29 +11,29 @@ namespace Resources
     public partial class DummyBrain : Resource
     {
 
-        public void Tick(DummyEnemy me, List<PlayerActor> playerGroup)
+        public IAction Tick(DummyEnemy me, List<IActor> playerGroup)
         {
-            BasicAttack(me, playerGroup);
             GD.Print("Enemy: Ticking");
+            return BasicAttack(me, playerGroup);
         }
 
     
-     private void BasicAttack(DummyEnemy me, List<PlayerActor> tree)
+     private IAction BasicAttack(DummyEnemy me, List<IActor> tree)
      
         {
             
             if (tree.Count == 0)
             {
                 GD.Print("No actors to attack");
-                return;
+                return new ActionAttack();
             }
 
             List<int> actorHealth = new();
 
             // First pass: collect actors + their HP
-            foreach (Node node in tree)
+            foreach (var actor in tree)
             {
-                if (node is PlayerActor a)
+                if (actor is PlayerActor a)
                 {
                     actorHealth.Add(a.CurrentHp);
                 }
@@ -47,9 +47,12 @@ namespace Resources
                     minHpIndex = i;
             }
 
-            PlayerActor target = tree[minHpIndex];
-            target.CurrentHp -= me.EnemyStats.Str;
-            GD.Print("HP is " + target.CurrentHp);
+            List<IActor> targets = new List<IActor>();
+            targets.Add(tree[minHpIndex]);
+            //targets.CurrentHp -= me.EnemyStats.Str;
+            //GD.Print("HP is " + targets.CurrentHp);
+            return new ActionAttack();
+
         }
 
     }

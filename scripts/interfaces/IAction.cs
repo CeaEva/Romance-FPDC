@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using Godot;
 
 namespace Combat
@@ -7,9 +8,11 @@ namespace Combat
     {
 
         int Damage { get; }
-        DummyEnemy Target { get; }
+        List<IActor> Targets { get; }
         Animation ActAnimation { get; }
-        PlayerActor Caller { get; }
+        IActor Caller { get; }
+
+        void Execute();
 
 
     }

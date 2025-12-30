@@ -19,15 +19,21 @@ public partial class DummyEnemy : Node, IActor
             _currentHp = value;
         }
     }
-    public ActorData EnemyStats
+    public ActorData Stats
     {
-        get => _enemyStats; private set
+        get => _enemyStats; set
         {
             _enemyStats = value;
             // mirror into your singleton if you want
         }
     }
-    List<PlayerActor> _playerList;
+    public new string Name
+        {
+            get => base.Name;      // StringName -> string via implicit conversion
+            set => base.Name = value; // string -> StringName via implicit conversion
+        }
+
+    List<IActor> _playerList;
     ActorData _enemyStats;
     int _currentHp;
     TextureRect _sprite;
@@ -38,12 +44,13 @@ public partial class DummyEnemy : Node, IActor
         _sprite = GetNodeOrNull<TextureRect>("EnemySprite");
         _sprite.Visible = true;
         var baseStats = GD.Load<ActorData>(StatsPath);
-        EnemyStats = (ActorData)baseStats.Duplicate();
-        CurrentHp = EnemyStats.MaxHp;
+        _enemyStats = (ActorData)baseStats.Duplicate();
+        CurrentHp = _enemyStats.MaxHp;
         AddToGroup("EnemyGroup");
         var BattleManager = GetNodeOrNull<BattleManager>("%BattleManager");
         _playerList = BattleManager.PlayerList;
         Name = _enemyStats.Name;
+        GD.Print(Name + "Smile");
         State = CombatState.Wait;
         
 

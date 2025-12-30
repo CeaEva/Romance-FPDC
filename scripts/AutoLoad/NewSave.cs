@@ -7,7 +7,7 @@ public partial class NewSave : Node
 {
     public static NewSave I { get; private set; } // Golbal Pointer Reference
 
-    [Export] public ActorData ElleStats {  get => _elleStats ??= new ActorData(999, 5, 5, 7, 6, 7, 5, 0); set => _elleStats = value ?? new ActorData(999, 5, 5, 7, 6, 7, 5, 0);}
+    [Export] public ActorData ElleStats {  get => _elleStats ??= new ActorData(999, 5, 5, 7, 6, 7, 5, 0); set => _elleStats = value ?? new ActorData(999, 5, 5, 7, 6, 7, 5, 0);} 
     
     public string EStatsPath;
     ActorData _elleStats;

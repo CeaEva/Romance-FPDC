@@ -9,7 +9,7 @@ namespace Combat
     public partial class BattleManager : Node
     {
 
-        public List<PlayerActor> PlayerList
+        public List<IActor> PlayerList
         {
             get => _playerList; private set
             {
@@ -18,7 +18,7 @@ namespace Combat
 
         }
 
-        public List<DummyEnemy> EnemyList
+        public List<IActor> EnemyList
         {
             get => _enemyList; private set
             {
@@ -27,9 +27,12 @@ namespace Combat
 
         }
 
-        List<Node> _allActors = new List<Node>();
-        List<PlayerActor> _playerList = new List<PlayerActor>();
-        List<DummyEnemy> _enemyList = new List<DummyEnemy>();
+        [Signal]
+        public delegate void ActorsReadyEventHandler();
+
+        List<IActor> _allActors = new List<IActor>();
+        List<IActor> _playerList = new List<IActor>();
+        List<IActor> _enemyList = new List<IActor>();
         //Queue _turnQueue = new();
         ProgressBar _atbBar;
 
@@ -38,7 +41,8 @@ namespace Combat
             
             ActorsToList("EnemyGroup");
             ActorsToList("PlayerGroup");
-            GD.Print("Enemies: " + EnemyNames() +" " +" Player: " + _playerList);
+            GD.Print("Enemies: " + _allActors + " " +" Player: " + _playerList);
+            EmitSignal(SignalName.ActorsReady);
             var atbTimer = GetNode<Timer>("AtbTimer");
             atbTimer.Timeout += AtbTick;
             _atbBar = GetNodeOrNull<ProgressBar>("%AtbBar");
@@ -53,15 +57,17 @@ namespace Combat
 
         private void ActorsToList(string group)
         {
-            var nodes = GetTree().GetNodesInGroup(group);
+            var actors = GetTree().GetNodesInGroup(group);
 
-            foreach (Node node in nodes)
+            foreach (var actor in actors)
             {
-                _allActors.Add(node);
+                if (actor is IActor iActor)
+                    _allActors.Add(iActor);
 
-                if (node is DummyEnemy dummy)
+                if (actor is DummyEnemy dummy)
                     _enemyList.Add(dummy);
-                else if (node is PlayerActor player)
+
+                if (actor is PlayerActor player)
                     _playerList.Add(player);
 
             }
@@ -72,24 +78,24 @@ namespace Combat
         private void AtbTick()
         {
             
-            foreach (PlayerActor n in _playerList)
+            foreach (IActor n in _allActors)
             {
                 if (n.State != CombatState.Wait)
                     break;
 
-                n.Atb += n.PlayerStats.Spd;
-                GD.Print(n.Atb);
-                _atbBar?.SetValueNoSignal(n.Atb);
-            }
+                if (n is PlayerActor player){
+                    player.Atb += player.Stats.Spd;
+                    GD.Print(player.Name + " " + player.Atb);
+                    _atbBar?.SetValueNoSignal(player.Atb);
+                }
 
-            foreach (DummyEnemy n in _enemyList)
-            {
-                if (n.State != CombatState.Wait)
-                    break;
-
-                n.Atb += n.EnemyStats.Spd;
-                GD.Print(n.Atb + ", " + n.State);
-                //atbBar.Value = n.Atb;
+                if (n is DummyEnemy enemy)
+                {
+                    
+                    GD.Print(enemy.Atb + ", " + enemy.State);
+                    enemy.Atb += enemy.Stats.Spd;
+                    
+                }
             }
 
             StateCheck();
@@ -99,14 +105,14 @@ namespace Combat
         {
             var atbMax = 100;
 
-            foreach (PlayerActor n in _playerList)
+            foreach (IActor n in _allActors)
             {
                 if (n.State == CombatState.Menu || n.State == CombatState.Select)
                     return;
 
-                if (n.Atb >= atbMax)
+                if (n.Atb >= atbMax && n is PlayerActor player)
                 {
-                    n.State = CombatState.Menu;
+                    player.StateControl(CombatState.Menu);
                     GD.Print("Player can menu");
                 }
 
@@ -114,9 +120,9 @@ namespace Combat
 
             foreach (DummyEnemy n in _enemyList)
             {
-                if (n.Atb >= atbMax)
+                if (n.Atb >= atbMax && n is DummyEnemy enemy)
                 {
-                    n.State = CombatState.Queued;
+                    enemy.State = CombatState.Queued;
                     GD.Print("Enemy can Tick");
                 }
 
@@ -132,14 +138,16 @@ namespace Combat
 
             foreach(DummyEnemy n in _enemyList)
             {
-                enemyString = n.Name + "";
-
+                enemyString = n.Name + " ";
+                GD.Print(enemyString);
             }
-
-
+            
             return enemyString;
 
+
+
         }
+
 
 
     }

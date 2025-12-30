@@ -1,4 +1,4 @@
-[gd_scene load_steps=11 format=3 uid="uid://du3m8pewgc7m"]
+[gd_scene load_steps=12 format=3 uid="uid://du3m8pewgc7m"]
 
 [ext_resource type="Texture2D" uid="uid://brwt1f34aogk4" path="res://assets/art/DummySprites/MenuBoarder.png" id="1_03b6v"]
 [ext_resource type="Resource" uid="uid://dt42dcw25eth" path="res://data/resources/DummyBrain.tres" id="2_f5dbq"]
@@ -6,19 +6,20 @@
 [ext_resource type="FontFile" uid="uid://c85hndpxa4wav" path="res://assets/art/4x6-font.otf" id="3_psywc"]
 [ext_resource type="Script" uid="uid://bwboxtnv5a8a2" path="res://scripts/combat/PlayerActor.cs" id="4_8nag7"]
 [ext_resource type="Script" uid="uid://cfj7s5xalyjum" path="res://scenes/ui/HpLabel.cs" id="4_i2q31"]
-[ext_resource type="Script" uid="uid://d3u3hidr3eret" path="res://scripts/ui/CombatMenu.cs" id="5_gxder"]
+[ext_resource type="Script" uid="uid://d3u3hidr3eret" path="res://scripts/ui/CombatMenus/CombatMenu.cs" id="5_gxder"]
 [ext_resource type="Script" uid="uid://dd55hngwa37gx" path="res://scripts/core/DummyEnemy.cs" id="6_psywc"]
 [ext_resource type="Texture2D" uid="uid://c5jb8qbqamtxm" path="res://assets/art/DummySprite.png" id="7_psywc"]
 [ext_resource type="Script" uid="uid://dahuwdltuu82c" path="res://scripts/combat/BattleManager.cs" id="9_gxder"]
+[ext_resource type="Script" uid="uid://s88yigqe1bfs" path="res://scripts/ui/CombatMenus/SubMenuSelect.cs" id="10_te6uw"]
 
 [node name="CombatScene" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -1.0
+offset_left = -2.0
 offset_top = -2.0
-offset_right = -1.0
+offset_right = -2.0
 offset_bottom = -2.0
 grow_horizontal = 2
 grow_vertical = 2
@@ -128,6 +129,7 @@ offset_bottom = 165.0
 
 [node name="BattleMenu" type="NinePatchRect" parent="PlayerActor"]
 unique_name_in_owner = true
+visible = false
 z_index = -2
 offset_left = 3.5
 offset_top = 49.0
@@ -154,6 +156,38 @@ offset_left = -18.508
 offset_top = -14.5
 offset_right = 15.492
 offset_bottom = 53.5
+theme_override_colors/default_color = Color(0.358283, 0.182053, 0.480469, 1)
+theme_override_constants/line_separation = 2
+theme_override_fonts/normal_font = ExtResource("3_psywc")
+theme_override_font_sizes/normal_font_size = 6
+
+[node name="SubMenuSelect" type="NinePatchRect" parent="PlayerActor"]
+unique_name_in_owner = true
+visible = false
+offset_left = 13.5
+offset_top = 56.0
+offset_right = 57.5
+offset_bottom = 138.0
+texture = ExtResource("1_03b6v")
+region_rect = Rect2(0, 0, 22, 19)
+patch_margin_left = 6
+patch_margin_top = 6
+patch_margin_right = 6
+patch_margin_bottom = 6
+script = ExtResource("10_te6uw")
+
+[node name="TargetSelectLabel" type="RichTextLabel" parent="PlayerActor/SubMenuSelect"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.557
+anchor_top = 0.25
+anchor_right = 0.557
+anchor_bottom = 0.25
+offset_left = -20.736
+offset_top = -25.0
+offset_right = 13.264
+offset_bottom = 43.0
 theme_override_colors/default_color = Color(0.358283, 0.182053, 0.480469, 1)
 theme_override_constants/line_separation = 2
 theme_override_fonts/normal_font = ExtResource("3_psywc")
