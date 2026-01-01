@@ -10,6 +10,8 @@ namespace Combat{
     public partial class SubMenuSelect : CombatMenu
     
     {
+        [Signal]
+        public delegate void ActionContextEventHandler(ActionContext action); 
         string _action;
         ActionReference _actDictionary;
 
@@ -105,9 +107,11 @@ namespace Combat{
             {
                 _enemyList[_cursorIndex]
             };
+            ActionContext action = new(targets, _player, selectedAction);
             //var action = new ActionAttack();
             //_player.GetAction(action);
-            _player.StateControl(CombatState.Queued); 
+            _player.StateControl(CombatState.Queued);
+            EmitSignal(SignalName.ActionContext, action);
 
         }
 

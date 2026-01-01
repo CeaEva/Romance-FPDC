@@ -46,7 +46,8 @@ namespace Combat
             var atbTimer = GetNode<Timer>("AtbTimer");
             atbTimer.Timeout += AtbTick;
             _atbBar = GetNodeOrNull<ProgressBar>("%AtbBar");
-            
+            ActionContext += EnqueueAction;
+
         }
 
         public override void _Process(double delta)
@@ -148,6 +149,12 @@ namespace Combat
 
         }
 
+        private void EnqueueAction()
+        {
+            
+
+
+        }
 
 
     }
