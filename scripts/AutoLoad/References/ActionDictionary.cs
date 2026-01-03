@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using Combat;
 using Godot;
 
-namespace References
+namespace Resources
 {
-    
-    public sealed class ActionReference
+    [GlobalClass]
+    public partial class ActionReference : Resource
     {
 
         public IReadOnlyDictionary<string, IAction> ActionDictionary => _defs;

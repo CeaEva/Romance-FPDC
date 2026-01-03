@@ -2,7 +2,7 @@ using Godot;
 using System;
 using System.Collections.Generic;
 using System.Xml;
-using References;
+using Resources;
 
 namespace Combat{
 
@@ -11,7 +11,7 @@ namespace Combat{
     
     {
         [Signal]
-        public delegate void ActionContextEventHandler(ActionContext action); 
+        public delegate void ActionSendEventHandler(ActionContext action); 
         string _action;
         ActionReference _actDictionary;
 
@@ -27,6 +27,8 @@ namespace Combat{
             _optionsLabel = GetNodeOrNull<RichTextLabel>("%TargetSelectLabel");
             if (_battleManager.EnemyList.Count > 0)
                 OnActorsReady();
+            _actDictionary = new();
+
         }
 
         public override void _Process(double delta)
@@ -54,6 +56,9 @@ namespace Combat{
                 _cursorIndex = (_cursorIndex + 1) % _cursor.Count;
                 DrawMenu(_cursor, _optionsLabel);
             }
+
+            if (@event.IsActionPressed("Confirm"))
+                UsePressed();
 
 
 
@@ -101,6 +106,11 @@ namespace Combat{
     protected override void UsePressed()
 
         {
+
+            void ActionSend(ActionContext action) => _battleManager.EnqueueAction(action);
+
+
+
             var selectedAction = _actDictionary.ActionDictionary[_action];
             IsActive = false;
             var targets = new List<IActor>
@@ -111,7 +121,9 @@ namespace Combat{
             //var action = new ActionAttack();
             //_player.GetAction(action);
             _player.StateControl(CombatState.Queued);
-            EmitSignal(SignalName.ActionContext, action);
+            //EmitSignal(SignalName.ActionSend, action);
+            ActionSend(action);
+            
 
         }
 

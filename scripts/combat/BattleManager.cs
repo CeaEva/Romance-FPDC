@@ -33,7 +33,7 @@ namespace Combat
         List<IActor> _allActors = new List<IActor>();
         List<IActor> _playerList = new List<IActor>();
         List<IActor> _enemyList = new List<IActor>();
-        //Queue _turnQueue = new();
+        Queue<IAction> _turnQueue = new();
         ProgressBar _atbBar;
 
         public override void _Ready()
@@ -46,7 +46,6 @@ namespace Combat
             var atbTimer = GetNode<Timer>("AtbTimer");
             atbTimer.Timeout += AtbTick;
             _atbBar = GetNodeOrNull<ProgressBar>("%AtbBar");
-            ActionContext += EnqueueAction;
 
         }
 
@@ -149,9 +148,32 @@ namespace Combat
 
         }
 
-        private void EnqueueAction()
+        public void EnqueueAction(ActionContext action)
         {
-            
+            if (action == null)
+            {
+                GD.PrintErr("EnqueueAction called with null ActionContext.");
+                return;
+            }
+
+            var currentAct = action.SelectedAction;
+            if (currentAct == null)
+            {
+                GD.PrintErr("EnqueueAction missing SelectedAction.");
+                return;
+            }
+
+            _turnQueue.Enqueue(currentAct);
+            currentAct.Execute();
+            if (action.Caller != null)
+            {
+                action.Caller.Atb = 0;
+                action.Caller.State = CombatState.Wait;
+            }
+            else
+                GD.PrintErr("EnqueueAction missing Caller.");
+            _turnQueue.Dequeue();
+                        
 
 
         }
