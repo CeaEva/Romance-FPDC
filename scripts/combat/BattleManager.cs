@@ -1,6 +1,9 @@
 using Godot;
+using Resources;
 using System;
 using System.Collections.Generic;
+using System.Runtime;
+using System.Threading.Tasks;
 
 namespace Combat
 {
@@ -33,7 +36,7 @@ namespace Combat
         List<IActor> _allActors = new List<IActor>();
         List<IActor> _playerList = new List<IActor>();
         List<IActor> _enemyList = new List<IActor>();
-        Queue<IAction> _turnQueue = new();
+        Queue<Func<ActionContext, int, ActionResult>> _turnQueue = new();
         ProgressBar _atbBar;
 
         public override void _Ready()
@@ -148,7 +151,7 @@ namespace Combat
 
         }
 
-        public void EnqueueAction(ActionContext action)
+        public async Task EnqueueAction(ActionContext action)
         {
             if (action == null)
             {
@@ -164,7 +167,12 @@ namespace Combat
             }
 
             _turnQueue.Enqueue(currentAct);
-            currentAct.Execute();
+            //currentAct.Execute();
+
+            await Execute();
+
+            //for loop applying results
+
             if (action.Caller != null)
             {
                 action.Caller.Atb = 0;
@@ -174,6 +182,25 @@ namespace Combat
                 GD.PrintErr("EnqueueAction missing Caller.");
             _turnQueue.Dequeue();
                         
+            async Task Execute()
+            {
+                var targets = action.Targets;
+                var i = 0;
+
+                foreach (var target in targets)
+                {
+                    var result = action.SelectedAction(action, i);
+                    var beforeHp = target.CurrentHp;
+                    target.CurrentHp -= result.ActorDamage.Value;
+
+                    GD.Print(beforeHp, " current hp => ", target.CurrentHp);
+                    i++;
+
+                }
+
+            }
+            return;
+
 
 
         }

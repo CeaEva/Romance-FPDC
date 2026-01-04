@@ -1,6 +1,8 @@
+using System;
 using System.Collections.Generic;
 using Combat;
 using Godot;
+using Resources;
 
 namespace Combat{
 
@@ -11,9 +13,9 @@ namespace Combat{
 
         public IActor Caller;
 
-        public IAction SelectedAction;
+        public Func<ActionContext, int, ActionResult> SelectedAction;
 
-        public ActionContext(List<IActor> targets, IActor caller, IAction selectedAction )
+        public ActionContext(List<IActor> targets, IActor caller, Func<ActionContext, int, ActionResult> selectedAction )
         {
             Targets = targets;
 
