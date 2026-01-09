@@ -59,22 +59,25 @@ public partial class DummyEnemy : Node, IActor
     public override void _Process(double delta)
     {
         StateManager();
-        if (CurrentHp > 0) return;
-        else
-        {
-            QueueFree();
-        }
+        
 
     }
     
     private void StateManager()
     {
+        if (CurrentHp <= 0)
+        {
+            if (!IsQueuedForDeletion())
+                QueueFree();
+                return;
+        }
+
         switch (State)
         {
             case CombatState.Wait:
                 break;
             case CombatState.Queued:
-                Brain.Tick(this, _playerList);
+               // Brain.Tick(this, _playerList);
                 State = CombatState.Wait;
                 Atb = 0;
                 break;

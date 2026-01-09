@@ -84,7 +84,7 @@ namespace Combat
             foreach (IActor n in _allActors)
             {
                 if (n.State != CombatState.Wait)
-                    break;
+                    continue;
 
                 if (n is PlayerActor player){
                     player.Atb += player.Stats.Spd;
@@ -110,8 +110,8 @@ namespace Combat
 
             foreach (IActor n in _allActors)
             {
-                if (n.State == CombatState.Menu || n.State == CombatState.Select)
-                    return;
+                if (n.State != CombatState.Wait)
+                    continue;
 
                 if (n.Atb >= atbMax && n is PlayerActor player)
                 {
@@ -123,9 +123,14 @@ namespace Combat
 
             foreach (DummyEnemy n in _enemyList)
             {
-                if (n.Atb >= atbMax && n is DummyEnemy enemy)
+                if (_enemyList.Count <= 0){
+                    GD.Print("Enemies dead");
+                    return;
+                }
+
+                if (n.Atb >= atbMax && n.State != CombatState.Queued)
                 {
-                    enemy.State = CombatState.Queued;
+                    n.State = CombatState.Queued;
                     GD.Print("Enemy can Tick");
                 }
 
@@ -181,6 +186,8 @@ namespace Combat
             else
                 GD.PrintErr("EnqueueAction missing Caller.");
             _turnQueue.Dequeue();
+
+            
                         
             async Task Execute()
             {
