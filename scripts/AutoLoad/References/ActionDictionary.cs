@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Net.NetworkInformation;
 using Combat;
 using Godot;
 
@@ -24,13 +25,12 @@ namespace Resources
     }
 
 
-    [GlobalClass]
-    public partial class ActionReference : Resource
+    //[GlobalClass]
+    public static class ActionReference
     {
 
-        public IReadOnlyDictionary<string, Func<ActionContext, int, ActionResult>> ActionDictionary => _defs;
 
-        Dictionary<string, Func<ActionContext, int, ActionResult>> _defs = new Dictionary<string, Func<ActionContext, int, ActionResult>>
+        private static Dictionary<string, Func<ActionContext, int, ActionResult>> _defs = new Dictionary<string, Func<ActionContext, int, ActionResult>>
 
         {
             ["Attack"] = (ctx, i) =>
@@ -47,6 +47,7 @@ namespace Resources
 
         } ;             
 
+        public static IReadOnlyDictionary<string, Func<ActionContext, int, ActionResult>> ActionDictionary => _defs;
         
 
 

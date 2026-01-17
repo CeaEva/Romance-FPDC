@@ -2,6 +2,7 @@ using Godot;
 using Resources;
 using System;
 using System.Collections.Generic;
+using System.Reflection.Metadata.Ecma335;
 using System.Runtime;
 using System.Threading.Tasks;
 
@@ -30,13 +31,24 @@ namespace Combat
 
         }
 
-        [Signal]
-        public delegate void ActorsReadyEventHandler();
+        public List<IActor> AllActorList
+        {
+            
+            get => _allActors; private set
+            {
+                _allActors = value;
+            }
+
+
+        }
+
+        [Signal] public delegate void ActorsReadyEventHandler();
+        [Signal] public delegate void PlayerTurnFinishedEventHandler();
 
         List<IActor> _allActors = new List<IActor>();
         List<IActor> _playerList = new List<IActor>();
         List<IActor> _enemyList = new List<IActor>();
-        Queue<Func<ActionContext, int, ActionResult>> _turnQueue = new();
+        Queue<ActionContext> _turnQueue = new();
         ProgressBar _atbBar;
 
         public override void _Ready()
@@ -60,10 +72,12 @@ namespace Combat
 
         private void ActorsToList(string group)
         {
+
             var actors = GetTree().GetNodesInGroup(group);
 
             foreach (var actor in actors)
             {
+                
                 if (actor is IActor iActor)
                     _allActors.Add(iActor);
 
@@ -85,7 +99,7 @@ namespace Combat
             {
                 if (n.State != CombatState.Wait)
                     continue;
-
+                
                 if (n is PlayerActor player){
                     player.Atb += player.Stats.Spd;
                     GD.Print(player.Name + " " + player.Atb);
@@ -134,6 +148,16 @@ namespace Combat
                     GD.Print("Enemy can Tick");
                 }
 
+                if (n.State == CombatState.Dead){
+                    GD.Print("Enemy Should be Removed, prob not though");
+                    _enemyList.Remove(n);
+                    _enemyList.Clear();
+                    ActorsToList("EnemyGroup");
+                    EmitSignal(SignalName.PlayerTurnFinished);
+                    GD.Print("PlayerAction Signal");
+                }
+
+
             }
             
 
@@ -164,14 +188,8 @@ namespace Combat
                 return;
             }
 
-            var currentAct = action.SelectedAction;
-            if (currentAct == null)
-            {
-                GD.PrintErr("EnqueueAction missing SelectedAction.");
-                return;
-            }
 
-            _turnQueue.Enqueue(currentAct);
+            _turnQueue.Enqueue(action);
             //currentAct.Execute();
 
             await Execute();
@@ -185,34 +203,46 @@ namespace Combat
             }
             else
                 GD.PrintErr("EnqueueAction missing Caller.");
-            _turnQueue.Dequeue();
 
+            _turnQueue.Dequeue();
             
                         
             async Task Execute()
             {
                 var targets = action.Targets;
                 var i = 0;
+                var currentAct = action.SelectedAction;
+
+                if (currentAct == null)
+                {
+                    GD.PrintErr("EnqueueAction missing SelectedAction.");
+                    return;
+                }
 
                 foreach (var target in targets)
                 {
-                    var result = action.SelectedAction(action, i);
+                    var result = currentAct(action, i);
                     var beforeHp = target.CurrentHp;
                     target.CurrentHp -= result.ActorDamage.Value;
 
-                    GD.Print(beforeHp, " current hp => ", target.CurrentHp);
+                    GD.Print(beforeHp, " current hp => ", target.CurrentHp, " ", target.Name);
                     i++;
 
                 }
+                
+                return;
+                
 
             }
-            return;
 
 
 
         }
 
 
+
     }
+
+
 
 }

@@ -37,6 +37,7 @@ public partial class DummyEnemy : Node, IActor
     ActorData _enemyStats;
     int _currentHp;
     TextureRect _sprite;
+    BattleManager _battleManager;
 
     public override void _Ready()
     {
@@ -47,8 +48,8 @@ public partial class DummyEnemy : Node, IActor
         _enemyStats = (ActorData)baseStats.Duplicate();
         CurrentHp = _enemyStats.MaxHp;
         AddToGroup("EnemyGroup");
-        var BattleManager = GetNodeOrNull<BattleManager>("%BattleManager");
-        _playerList = BattleManager.PlayerList;
+        _battleManager = GetNodeOrNull<BattleManager>("%BattleManager");
+        _playerList = _battleManager.PlayerList;
         Name = _enemyStats.Name;
         GD.Print(Name + "Smile");
         State = CombatState.Wait;
@@ -67,7 +68,9 @@ public partial class DummyEnemy : Node, IActor
     {
         if (CurrentHp <= 0)
         {
+            State = CombatState.Dead;
             if (!IsQueuedForDeletion())
+                GD.Print("Queue free");
                 QueueFree();
                 return;
         }
@@ -77,7 +80,7 @@ public partial class DummyEnemy : Node, IActor
             case CombatState.Wait:
                 break;
             case CombatState.Queued:
-               // Brain.Tick(this, _playerList);
+               _battleManager.EnqueueAction(Brain.Tick(this, _battleManager));
                 State = CombatState.Wait;
                 Atb = 0;
                 break;

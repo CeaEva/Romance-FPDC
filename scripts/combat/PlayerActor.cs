@@ -23,6 +23,7 @@ namespace Combat
         Select,
         Queued,
         Action,
+        Dead,
 
     }
     public partial class PlayerActor : Node, IActor

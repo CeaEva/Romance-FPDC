@@ -13,7 +13,7 @@ namespace Combat{
         [Signal]
         public delegate void ActionSendEventHandler(ActionContext action); 
         string _action;
-        ActionReference _actDictionary;
+        //ActionReference _actDictionary;
 
 
         public override void _Ready()
@@ -22,12 +22,13 @@ namespace Combat{
             _player = GetNodeOrNull<PlayerActor>("%PlayerActor");
             _battleManager = GetNodeOrNull<BattleManager>("%BattleManager");
             GD.Print("SubMenuSelect Ready, EnemyList.Count BEFORE = " + _battleManager.EnemyList.Count);  
-            _battleManager.ActorsReady += OnActorsReady; 
+            _battleManager.ActorsReady += OnActorsReady;
+            _battleManager.PlayerTurnFinished += GetCursorElements; 
             _battleMenu = GetNodeOrNull<SubMenuSelect>("%SubMenuSelect");
             _optionsLabel = GetNodeOrNull<RichTextLabel>("%TargetSelectLabel");
             if (_battleManager.EnemyList.Count > 0)
                 OnActorsReady();
-            _actDictionary = new();
+            //_actDictionary = new();
 
         }
 
@@ -68,13 +69,16 @@ namespace Combat{
 
         public void GetCursorElements()
         {
+            _cursor.Clear();
+            _cursorIndex = 0;
                 
             for (int i = 0; i < _enemyList.Count; i++)
             {
                 _cursor.Add(_enemyList[i].Name);
                 GD.Print(_enemyList[i]);
             }
-
+            if (_cursor.Count == 0)
+                _optionsLabel.Clear();
 
 
         }
@@ -111,7 +115,7 @@ namespace Combat{
 
 
 
-            var selectedAction = _actDictionary.ActionDictionary[_action];
+            var selectedAction = ActionReference.ActionDictionary[_action];
             IsActive = false;
             var targets = new List<IActor>
             {
@@ -126,6 +130,7 @@ namespace Combat{
             
 
         }
+
 
 
     }

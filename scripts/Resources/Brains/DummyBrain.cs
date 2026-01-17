@@ -11,33 +11,30 @@ namespace Resources
     public partial class DummyBrain : Resource
     {
 
-        public IAction Tick(DummyEnemy me, List<IActor> playerGroup)
+        public ActionContext Tick(DummyEnemy me, BattleManager battleManager)
         {
+            var action = BasicAttack(me, battleManager);
+            action.SelectedAction = ActionReference.ActionDictionary["Attack"];
             GD.Print("Enemy: Ticking");
-            return BasicAttack(me, playerGroup);
+            return action;
         }
 
     
-     private IAction BasicAttack(DummyEnemy me, List<IActor> tree)
+     private ActionContext BasicAttack(DummyEnemy me, BattleManager battleManager) //<= change tree to battle manger
      
         {
             
-            if (tree.Count == 0)
+            if (battleManager.AllActorList.Count == 0)
             {
                 GD.Print("No actors to attack");
-                return new ActionAttack();
+                return new ActionContext(null, null, null);
             }
 
             List<int> actorHealth = new();
 
             // First pass: collect actors + their HP
-            foreach (var actor in tree)
-            {
-                if (actor is PlayerActor a)
-                {
-                    actorHealth.Add(a.CurrentHp);
-                }
-            }
+            foreach (var actor in battleManager.PlayerList)
+                actorHealth.Add(actor.CurrentHp);
 
             // Simple example: target the lowest HP actor
             int minHpIndex = 0;
@@ -47,11 +44,11 @@ namespace Resources
                     minHpIndex = i;
             }
 
-            List<IActor> targets = new List<IActor>();
-            targets.Add(tree[minHpIndex]);
+            List<IActor> targets = [battleManager.PlayerList[minHpIndex]];
+            
             //targets.CurrentHp -= me.EnemyStats.Str;
             //GD.Print("HP is " + targets.CurrentHp);
-            return new ActionAttack();
+            return new ActionContext(targets, me, null); //return a 
 
         }
 
