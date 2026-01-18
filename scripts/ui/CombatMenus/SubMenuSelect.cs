@@ -13,18 +13,19 @@ namespace Combat{
         [Signal]
         public delegate void ActionSendEventHandler(ActionContext action); 
         string _action;
+        CombatMenu _parentMenu;
         //ActionReference _actDictionary;
 
 
         public override void _Ready()
         {               
-            //base._Ready();
+            _isActive = false;
             _player = GetNodeOrNull<PlayerActor>("%PlayerActor");
             _battleManager = GetNodeOrNull<BattleManager>("%BattleManager");
             GD.Print("SubMenuSelect Ready, EnemyList.Count BEFORE = " + _battleManager.EnemyList.Count);  
             _battleManager.ActorsReady += OnActorsReady;
             _battleManager.PlayerTurnFinished += GetCursorElements; 
-            _battleMenu = GetNodeOrNull<SubMenuSelect>("%SubMenuSelect");
+            _parentMenu = GetNodeOrNull<CombatMenu>("%BattleMenu");
             _optionsLabel = GetNodeOrNull<RichTextLabel>("%TargetSelectLabel");
             if (_battleManager.EnemyList.Count > 0)
                 OnActorsReady();
@@ -61,6 +62,9 @@ namespace Combat{
             if (@event.IsActionPressed("Confirm"))
                 UsePressed();
 
+            if (@event.IsActionPressed("Cancel"))
+                Activate(_parentMenu, this);
+
 
 
         }
@@ -96,14 +100,13 @@ namespace Combat{
 
         }
      
-    public void Activate(string action)
+    public void ActionSelect(string action)
         {
             if (_cursor.Count == 0 && _battleManager != null)
             {
                 _enemyList = _battleManager.EnemyList;
                 GetCursorElements();
             }
-            IsActive = true;
             _action = action;
         }
 

@@ -86,7 +86,6 @@ patch_margin_right = 6
 patch_margin_bottom = 6
 axis_stretch_horizontal = 2
 axis_stretch_vertical = 2
-script = ExtResource("5_gxder")
 
 [node name="HpLabel" type="RichTextLabel" parent="PlayerActor/ElleTab"]
 layout_mode = 1
@@ -143,6 +142,7 @@ patch_margin_right = 6
 patch_margin_bottom = 6
 axis_stretch_horizontal = 2
 axis_stretch_vertical = 2
+script = ExtResource("5_gxder")
 
 [node name="BattleOptionsLabel" type="RichTextLabel" parent="PlayerActor/BattleMenu"]
 unique_name_in_owner = true

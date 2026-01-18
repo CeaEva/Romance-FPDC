@@ -58,7 +58,7 @@ namespace Combat
         
         public override void _Ready()
         {
-            _menu = GetNodeOrNull<CombatMenu>("%ElleTab");
+            _menu = GetNodeOrNull<CombatMenu>("%BattleMenu");
             var StatsPath = GD.Load<ActorData>("res://data/PlayerActors/ElleStats.tres");
             _playerStats = (ActorData)StatsPath.Duplicate();
             AddToGroup("PlayerGroup");
@@ -93,7 +93,7 @@ namespace Combat
             switch (State)
             {
                 case CombatState.Menu:
-                    _menu.Activate();
+                    _menu.Activate(_menu);
                     break;
                 case CombatState.Select:
                    // _menu.Visible = false;

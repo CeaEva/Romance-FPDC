@@ -35,8 +35,7 @@ namespace Combat
                 _isActive = value;
 
  
-                if (_battleMenu != null)
-                    _battleMenu.Visible = value;
+                Visible = value;
 
                 if (value)
                     DrawMenu(_cursor, _optionsLabel);
@@ -71,7 +70,7 @@ namespace Combat
 
         public override void _Ready()
         {
-            IsActive = false;
+            _isActive = false;
             _battleMenu = GetNodeOrNull<NinePatchRect>("%BattleMenu");
             _state = MenuState.Main;
             _dummyEnemy = GetNodeOrNull<DummyEnemy>("%DummyEnemy");
@@ -126,9 +125,7 @@ namespace Combat
     
     
         protected virtual void UsePressed()
-        {
-
-            IsActive = false;
+        {   
 
             switch (_cursorIndex)
             {
@@ -138,7 +135,8 @@ namespace Combat
                     //AddChild(_subMenuSelect);
                     _state = MenuState.StandardAttack;
                     _player.StateControl(CombatState.Select);
-                    _subMenuSelect.Activate(_cursor[_cursorIndex]);
+                    _subMenuSelect.ActionSelect(_cursor[_cursorIndex]);
+                    Activate(this, _subMenuSelect);
                     break;
                 case 1:
                     // same, but set skills state and pass skills list
@@ -149,7 +147,6 @@ namespace Combat
             {
                 case MenuState.StandardAttack:
                    // _battleMenu.Visible = false;
-                   IsActive = false;
                     break;
             }
 
@@ -177,7 +174,19 @@ namespace Combat
 
         }
 
-        public virtual void Activate() => IsActive = true; 
+        public void Activate(CombatMenu menu, CombatMenu nextMenu = null){
+
+
+            menu.IsActive = !menu.IsActive;
+            GD.Print(menu.IsActive);
+
+            if (nextMenu != null)
+                Activate(nextMenu);
+                
+        }
+
+
+
 
     }
 }
