@@ -1,10 +1,7 @@
 using Godot;
-using Resources;
-using System;
 using System.Collections.Generic;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime;
 using System.Threading.Tasks;
+using Resources;
 
 namespace Combat
 {
@@ -13,50 +10,24 @@ namespace Combat
     public partial class BattleManager : Node
     {
 
-        public List<IActor> PlayerList
-        {
-            get => _playerList; private set
-            {
-                _playerList = value;
-            }
-
-        }
-
-        public List<IActor> EnemyList
-        {
-            get => _enemyList; private set
-            {
-                _enemyList = value;
-            }
-
-        }
-
-        public List<IActor> AllActorList
-        {
-            
-            get => _allActors; private set
-            {
-                _allActors = value;
-            }
-
-
-        }
+        public List<IActor> PlayerList => _playerList;
+        public List<IActor> EnemyList => _enemyList;
+        public List<IActor> AllActorList => _allActors;
 
         [Signal] public delegate void ActorsReadyEventHandler();
         [Signal] public delegate void PlayerTurnFinishedEventHandler();
 
-        List<IActor> _allActors = new List<IActor>();
-        List<IActor> _playerList = new List<IActor>();
-        List<IActor> _enemyList = new List<IActor>();
-        Queue<ActionContext> _turnQueue = new();
+        readonly List<IActor> _allActors = new();
+        readonly List<IActor> _playerList = new();
+        readonly List<IActor> _enemyList = new();
+        readonly Queue<ActionContext> _turnQueue = new();
+        bool _isProcessing;
         ProgressBar _atbBar;
 
         public override void _Ready()
         {
             
-            ActorsToList("EnemyGroup");
-            ActorsToList("PlayerGroup");
-            GD.Print("Enemies: " + _allActors + " " +" Player: " + _playerList);
+            RefreshActorLists();
             EmitSignal(SignalName.ActorsReady);
             var atbTimer = GetNode<Timer>("AtbTimer");
             atbTimer.Timeout += AtbTick;
@@ -64,10 +35,13 @@ namespace Combat
 
         }
 
-        public override void _Process(double delta)
+        private void RefreshActorLists()
         {
-            
-
+            _allActors.Clear();
+            _playerList.Clear();
+            _enemyList.Clear();
+            ActorsToList("EnemyGroup");
+            ActorsToList("PlayerGroup");
         }
 
         private void ActorsToList(string group)
@@ -94,25 +68,20 @@ namespace Combat
 
         private void AtbTick()
         {
-            
-            foreach (IActor n in _allActors)
+            foreach (var actor in _allActors)
             {
-                if (n.State != CombatState.Wait)
+                if (actor.State != CombatState.Wait)
                     continue;
-                
-                if (n is PlayerActor player){
+
+                if (actor is PlayerActor player)
+                {
                     player.Atb += player.Stats.Spd;
-                    GD.Print(player.Name + " " + player.Atb);
                     _atbBar?.SetValueNoSignal(player.Atb);
+                    continue;
                 }
 
-                if (n is DummyEnemy enemy)
-                {
-                    
-                    GD.Print(enemy.Atb + ", " + enemy.State);
+                if (actor is DummyEnemy enemy)
                     enemy.Atb += enemy.Stats.Spd;
-                    
-                }
             }
 
             StateCheck();
@@ -135,49 +104,37 @@ namespace Combat
 
             }
 
-            foreach (DummyEnemy n in _enemyList)
+            if (_enemyList.Count == 0)
             {
-                if (_enemyList.Count <= 0){
-                    GD.Print("Enemies dead");
-                    return;
-                }
+                GD.Print("Enemies dead");
+                return;
+            }
 
-                if (n.Atb >= atbMax && n.State != CombatState.Queued)
+            var deadEnemies = new List<IActor>();
+
+            foreach (var enemy in _enemyList)
+            {
+                if (enemy.Atb >= atbMax && enemy.State != CombatState.Queued)
                 {
-                    n.State = CombatState.Queued;
+                    enemy.State = CombatState.Queued;
                     GD.Print("Enemy can Tick");
                 }
 
-                if (n.State == CombatState.Dead){
-                    GD.Print("Enemy Should be Removed, prob not though");
-                    _enemyList.Remove(n);
-                    _enemyList.Clear();
-                    ActorsToList("EnemyGroup");
-                    EmitSignal(SignalName.PlayerTurnFinished);
-                    GD.Print("PlayerAction Signal");
+                if (enemy.State == CombatState.Dead)
+                {
+                    deadEnemies.Add(enemy);
                 }
-
-
             }
-            
 
+            if (deadEnemies.Count == 0)
+                return;
 
-        }
+            foreach (var enemy in deadEnemies)
+                _enemyList.Remove(enemy);
 
-        private string EnemyNames()
-        {
-            var enemyString = "";
-
-            foreach(DummyEnemy n in _enemyList)
-            {
-                enemyString = n.Name + " ";
-                GD.Print(enemyString);
-            }
-            
-            return enemyString;
-
-
-
+            RefreshActorLists();
+            EmitSignal(SignalName.PlayerTurnFinished);
+            GD.Print("PlayerAction Signal");
         }
 
         public async Task EnqueueAction(ActionContext action)
@@ -188,61 +145,73 @@ namespace Combat
                 return;
             }
 
-
             _turnQueue.Enqueue(action);
-            //currentAct.Execute();
+            if (_isProcessing)
+                return;
 
-            await Execute();
-
-            //for loop applying results
-
-            if (action.Caller != null)
+            _isProcessing = true;
+            try
             {
-                action.Caller.Atb = 0;
-                action.Caller.State = CombatState.Wait;
+                while (_turnQueue.Count > 0)
+                {
+                    var current = _turnQueue.Peek();
+                    var executed = Execute(current);
+
+                    if (executed)
+                    {
+                        if (current.Caller != null)
+                        {
+                            current.Caller.Atb = 0;
+                            current.Caller.State = CombatState.Wait;
+                        }
+                        else
+                        {
+                            GD.PrintErr("EnqueueAction missing Caller.");
+                        }
+                    }
+
+                    _turnQueue.Dequeue();
+                    await Task.Yield();
+                }
             }
-            else
-                GD.PrintErr("EnqueueAction missing Caller.");
-
-            _turnQueue.Dequeue();
-            
-                        
-            async Task Execute()
+            finally
             {
-                var targets = action.Targets;
+                _isProcessing = false;
+            }
+
+            bool Execute(ActionContext current)
+            {
+                var targets = current.Targets;
                 var i = 0;
-                var currentAct = action.SelectedAction;
+                var currentAct = current.SelectedAction;
 
                 if (currentAct == null)
                 {
                     GD.PrintErr("EnqueueAction missing SelectedAction.");
-                    return;
+                    return false;
+                }
+
+                if (targets == null || targets.Count == 0)
+                {
+                    GD.PrintErr("EnqueueAction missing Targets.");
+                    return false;
                 }
 
                 foreach (var target in targets)
                 {
-                    var result = currentAct(action, i);
+                    var result = currentAct(current, i);
                     var beforeHp = target.CurrentHp;
                     target.CurrentHp -= result.ActorDamage.Value;
 
                     GD.Print(beforeHp, " current hp => ", target.CurrentHp, " ", target.Name);
                     i++;
-
                 }
-                
-                return;
-                
 
+                return true;
             }
-
-
-
         }
-
-
-
     }
-
-
-
 }
+
+
+    

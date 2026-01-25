@@ -130,13 +130,7 @@ namespace Combat
             switch (_cursorIndex)
             {
                case 0: //Attack
-                    //add submenu node, set state to select Maybe flag
-                    //var subMenuSelect = new SubMenuSelect();
-                    //AddChild(_subMenuSelect);
                     _state = MenuState.StandardAttack;
-                    _player.StateControl(CombatState.Select);
-                    _subMenuSelect.ActionSelect(_cursor[_cursorIndex]);
-                    Activate(this, _subMenuSelect);
                     break;
                 case 1:
                     // same, but set skills state and pass skills list
@@ -146,7 +140,10 @@ namespace Combat
             switch (_state)
             {
                 case MenuState.StandardAttack:
-                   // _battleMenu.Visible = false;
+                    _player.StateControl(CombatState.Select);
+                    _subMenuSelect.ActionSelect(_cursor[_cursorIndex]);
+                    Activate(this, _subMenuSelect);
+                    _battleMenu.Visible = false;
                     break;
             }
 
@@ -156,8 +153,6 @@ namespace Combat
 
         protected void DrawMenu(List<string> elements, RichTextLabel label)
         {
-
-
 
             _optionsLabel.Clear();
 
@@ -169,8 +164,6 @@ namespace Combat
                     label.AppendText(e + "\n");
 
             }
-
-
 
         }
 
@@ -184,8 +177,6 @@ namespace Combat
                 Activate(nextMenu);
                 
         }
-
-
 
 
     }

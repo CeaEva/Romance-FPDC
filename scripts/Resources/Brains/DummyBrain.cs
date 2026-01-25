@@ -1,7 +1,5 @@
 using Godot;
 using Combat;
-using Microsoft.VisualBasic;
-using System;
 using System.Collections.Generic;
 
 
@@ -20,7 +18,7 @@ namespace Resources
         }
 
     
-     private ActionContext BasicAttack(DummyEnemy me, BattleManager battleManager) //<= change tree to battle manger
+        private ActionContext BasicAttack(DummyEnemy me, BattleManager battleManager) //<= change tree to battle manger
      
         {
             
@@ -46,8 +44,6 @@ namespace Resources
 
             List<IActor> targets = [battleManager.PlayerList[minHpIndex]];
             
-            //targets.CurrentHp -= me.EnemyStats.Str;
-            //GD.Print("HP is " + targets.CurrentHp);
             return new ActionContext(targets, me, null); //return a 
 
         }

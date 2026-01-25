@@ -1,6 +1,4 @@
 using Godot;
-using Overworld2d;
-using Combat;
 using Resources;
 using System;
 
@@ -28,18 +26,15 @@ namespace Combat
     }
     public partial class PlayerActor : Node, IActor
     {
-        public ActorData Stats 
-        { get => _playerStats;  set
-            {
-                _playerStats = value;
-            } 
+        public ActorData Stats
+        {
+            get => _playerStats;
+            set => _playerStats = value;
         }
         public int CurrentHp
         {
-            get => _currentHp;  set
-            {
-                _currentHp = value;
-            }
+            get => _currentHp;
+            set => _currentHp = value;
         }
         public new string Name
         {
@@ -49,18 +44,17 @@ namespace Combat
 
         public CombatState State { get; set; }
         public int Atb { get; set; }
-        CombatMenu _menu;
-        ActorData _playerStats;
-        DummyBrain _brain;
-        int _currentHp;
-        IAction Action;
-        
-        
+        private CombatMenu _menu;
+        private ActorData _playerStats;
+        private DummyBrain _brain;
+        private int _currentHp;
+        private IAction _queuedAction;
+
         public override void _Ready()
         {
             _menu = GetNodeOrNull<CombatMenu>("%BattleMenu");
-            var StatsPath = GD.Load<ActorData>("res://data/PlayerActors/ElleStats.tres");
-            _playerStats = (ActorData)StatsPath.Duplicate();
+            var statsResource = GD.Load<ActorData>("res://data/PlayerActors/ElleStats.tres");
+            _playerStats = (ActorData)statsResource.Duplicate();
             AddToGroup("PlayerGroup");
             Name = _playerStats.Name;
             _currentHp = _playerStats.CurrentHp;
@@ -71,16 +65,7 @@ namespace Combat
         public override void _Process(double delta)
         {
             if (State != CombatState.Wait)
-            {
-
-               // StateControl();
                 return;
-
-            }   
-
-            else
-                return;
-            
         }
 
 
@@ -93,7 +78,7 @@ namespace Combat
             switch (State)
             {
                 case CombatState.Menu:
-                    _menu.Activate(_menu);
+                    _menu?.Activate(_menu);
                     break;
                 case CombatState.Select:
                    // _menu.Visible = false;
@@ -110,7 +95,7 @@ namespace Combat
 
         }
 
-        public void GetAction(IAction action) =>  Action = action;
+        public void GetAction(IAction action) => _queuedAction = action; //Currently unused
         
 
     }

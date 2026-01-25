@@ -7,6 +7,10 @@ namespace DC
 {
     public partial class Player3d : CharacterBody3D
     {
+        private const string ActionTurnRight = "TurnRight";
+        private const string ActionTurnLeft = "TurnLeft";
+        private const string ActionStepForward = "StepForward";
+        private const string ActionDialogueTest = "DialougeTest";
 
         //Exports
         [Export] public float TurnDuration { get; set; } = 0.3f;
@@ -72,10 +76,10 @@ namespace DC
         private void Stabilize(Vector3 GivenPosition) //Get's Cell center Cordinants and makes it the GlobalPosition
         {
 
-            _node3d.ToLocal(GivenPosition); // GlobalPos -> LocalPos
+            var localPos = _node3d.ToLocal(GivenPosition); // GlobalPos -> LocalPos
 
-            var localPos = _grid.LocalToMap(GivenPosition);
-            var newGlobalPos = _grid.MapToLocal(localPos);
+            var localMap = _grid.LocalToMap(localPos);
+            var newGlobalPos = _grid.MapToLocal(localMap);
             newGlobalPos = _node3d.ToGlobal(newGlobalPos);
             GlobalPosition = newGlobalPos;
 
@@ -88,47 +92,35 @@ namespace DC
         {
 
             if (_turnTween?.IsRunning() == true || InEncounter) return;
+            if (_grid == null || _node3d == null) return;
 
-            var CurrentRotation = GlobalRotationDegrees;
-            float targetLocation = CurrentRotation.Y;
-            var CurrentPosition = GlobalPosition;
-            var TargetPosition = CurrentPosition;
+            var currentRotation = GlobalRotationDegrees;
+            float targetLocation;
 
-
-            string Tr = "TurnRight";
-            string Tl = "TurnLeft";
-            string Ta = "TrnRight";
-            string Sf = "StepForward";
-
-
-            if (Input.IsActionPressed(Tr))
+            if (Input.IsActionPressed(ActionTurnRight))
             {
-                targetLocation = CurrentRotation.Y -= 90f;
-                GD.Print($"{CurrentRotation}");
+                targetLocation = currentRotation.Y -= 90f;
+                GD.Print($"{currentRotation}");
                 await TurnTween(targetLocation);
             }
 
-            else if (Input.IsActionPressed(Tl))
+            else if (Input.IsActionPressed(ActionTurnLeft))
             {
-                targetLocation = CurrentRotation.Y += 90f;
-                GD.Print($"{CurrentRotation}");
+                targetLocation = currentRotation.Y += 90f;
+                GD.Print($"{currentRotation}");
                 await TurnTween(targetLocation);
             }
 
-            else if (Input.IsActionPressed(Sf))
+            else if (Input.IsActionPressed(ActionStepForward))
             {
                 float stepDistance = _grid.CellSize.Z;
                 // Forward direction is the node's -Z axis in Godot
-                //Vector3 forward = GlobalTransform.Basis.Z.Normalized();
-
-                //Vector3 TweenPosition = forward * stepDistance; 
-
                 await MoveTween(stepDistance);
 
                 EncounterChance();
             }
 
-            else if (Input.IsActionJustPressed("DialougeTest"))
+            else if (Input.IsActionJustPressed(ActionDialogueTest))
             {
                 ShowD();
             }
@@ -176,7 +168,7 @@ namespace DC
             Stabilize(GlobalPosition);
         }
 
-        private async void ShowD() //Simple Dialogue test
+        private void ShowD() //Simple Dialogue test
         {
 
             var dialogue = GD.Load<Resource>("res://data/Dialogue/waaa.dialogue");
@@ -221,4 +213,3 @@ namespace DC
         }
     }
 }
-

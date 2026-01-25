@@ -6,12 +6,10 @@ namespace Core
     public partial class Game : Node
     {
 
-        // private AnimationPlayer _animationPlayer;
         public override void _Ready()
         {
             // Preserve aspect ratio + internal resolution (uses your Project Settings base size).
             var root = GetTree().Root; // This is the main Window.
-                                       //var camera = GetNode<AnimationPlayer>("/root/Main/Player/Camera3D");
             root.ContentScaleMode = Window.ContentScaleModeEnum.Viewport; // scale the whole viewport
             root.ContentScaleAspect = Window.ContentScaleAspectEnum.Keep;   // keep aspect; add letterboxing if needed
 
@@ -21,9 +19,6 @@ namespace Core
 
             // Go fullscreen.
             GetWindow().Mode = Window.ModeEnum.Fullscreen;
-
-            NewSave.I.ElleStats.MaxHp += 10;
-            GD.Print(NewSave.I.ElleStats.MaxHp);
         }
 
         public enum GameMode

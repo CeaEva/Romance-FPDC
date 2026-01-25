@@ -8,13 +8,11 @@ namespace Combat{
 
 
     public partial class SubMenuSelect : CombatMenu
-    
     {
         [Signal]
         public delegate void ActionSendEventHandler(ActionContext action); 
         string _action;
         CombatMenu _parentMenu;
-        //ActionReference _actDictionary;
 
 
         public override void _Ready()
@@ -27,14 +25,6 @@ namespace Combat{
             _battleManager.PlayerTurnFinished += GetCursorElements; 
             _parentMenu = GetNodeOrNull<CombatMenu>("%BattleMenu");
             _optionsLabel = GetNodeOrNull<RichTextLabel>("%TargetSelectLabel");
-            if (_battleManager.EnemyList.Count > 0)
-                OnActorsReady();
-            //_actDictionary = new();
-
-        }
-
-        public override void _Process(double delta)
-        {
 
         }
 
@@ -90,17 +80,15 @@ namespace Combat{
 
 
 
-    private void OnActorsReady()
+        private void OnActorsReady()
         {
             
             _enemyList = _battleManager.EnemyList;
             GetCursorElements();
-            GD.Print("Cursor.Count AFTER GetCursorElements = " + _cursor.Count);
-            //DrawMenu(_cursor, _optionsLabel);
 
         }
      
-    public void ActionSelect(string action)
+        public void ActionSelect(string action)
         {
             if (_cursor.Count == 0 && _battleManager != null)
             {
@@ -110,29 +98,27 @@ namespace Combat{
             _action = action;
         }
 
-    protected override void UsePressed()
+        protected override void UsePressed()
 
         {
-
-            void ActionSend(ActionContext action) => _battleManager.EnqueueAction(action);
-
-
+            if (_cursor.Count == 0 || _enemyList.Count == 0)
+            {
+                GD.PrintErr("UsePressed called with no available targets.");
+                return;
+            }
 
             var selectedAction = ActionReference.ActionDictionary[_action];
             IsActive = false;
-            var targets = new List<IActor>
-            {
-                _enemyList[_cursorIndex]
-            };
+            var clampedIndex = Mathf.Clamp(_cursorIndex, 0, _enemyList.Count - 1);
+            var targets = new List<IActor> { _enemyList[clampedIndex] };
             ActionContext action = new(targets, _player, selectedAction);
-            //var action = new ActionAttack();
-            //_player.GetAction(action);
             _player.StateControl(CombatState.Queued);
-            //EmitSignal(SignalName.ActionSend, action);
             ActionSend(action);
             
+            void ActionSend(ActionContext action) => _battleManager.EnqueueAction(action);
 
         }
+
 
 
 

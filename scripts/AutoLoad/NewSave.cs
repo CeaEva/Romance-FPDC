@@ -5,13 +5,11 @@ using Resources;
 [GlobalClass]
 public partial class NewSave : Node
 {
-    public static NewSave I { get; private set; } // Golbal Pointer Reference
+    public static NewSave I { get; private set; } // Golbal Pointer Reference 
+    public ActorData ElleStats { get => _elleStats; private set => _elleStats = value; }
 
-    [Export] public ActorData ElleStats {  get => _elleStats ??= new ActorData(999, 5, 5, 7, 6, 7, 5, 0); set => _elleStats = value ?? new ActorData(999, 5, 5, 7, 6, 7, 5, 0);} 
-    
     public string EStatsPath;
     ActorData _elleStats;
-    ActorData _dummyEni;
 
       public override void _EnterTree()
     {
@@ -22,9 +20,8 @@ public partial class NewSave : Node
 
     public override void _Ready()
     {
-        I = this;
-        EStatsPath = "res://data/PlayerActors/ElleStats.tres";
-        var ElleBase = GD.Load<ActorData>(EStatsPath);
+        EStatsPath = "res://data/PlayerActors/ElleStats.tres";              
+        var ElleBase = GD.Load<ActorData>(EStatsPath);                      //This will be in for loop for all party members put into a list
         _elleStats = (ActorData)ElleBase.Duplicate();
         GD.Print("Current hp " + _elleStats.CurrentHp);
 
