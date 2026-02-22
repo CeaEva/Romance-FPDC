@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Xml;
 using Resources;
+using System.Threading.Tasks;
 
 namespace Combat{
 

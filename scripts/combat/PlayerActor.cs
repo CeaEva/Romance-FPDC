@@ -1,6 +1,8 @@
 using Godot;
 using Resources;
 using System;
+using System.Numerics;
+using System.Runtime.InteropServices;
 
 namespace Combat
 {
@@ -11,6 +13,8 @@ namespace Combat
         int CurrentHp { get; set; }
         string Name { get; set; }
         ActorData Stats { get; set; }
+
+        public void OdoDamage(int damage); 
 
     }
     public enum CombatState
@@ -48,7 +52,11 @@ namespace Combat
         private ActorData _playerStats;
         private DummyBrain _brain;
         private int _currentHp;
-        private IAction _queuedAction;
+        private int _targetHp;
+        private bool _isDraining;
+        [Export] RichTextLabel _hpLabel; 
+            
+        
 
         public override void _Ready()
         {
@@ -59,7 +67,8 @@ namespace Combat
             Name = _playerStats.Name;
             _currentHp = _playerStats.CurrentHp;
             _brain = _playerStats.Brain;
-
+            _hpLabel.AppendText($"HP: {CurrentHp}");
+            _isDraining = false;
         }
 
         public override void _Process(double delta)
@@ -81,7 +90,6 @@ namespace Combat
                     _menu?.Activate(_menu);
                     break;
                 case CombatState.Select:
-                   // _menu.Visible = false;
                     break;
                 case CombatState.Queued:
 
@@ -95,8 +103,45 @@ namespace Combat
 
         }
 
-        public void GetAction(IAction action) => _queuedAction = action; //Currently unused
-        
+        public async void OdoDamage(int damage)
+        {
+            var tree = GetTree();
+            if (tree == null || damage <= 0)
+                return;
+            
+            if (_isDraining)
+            {
+                _targetHp -= damage;
+                return;
+            }
+            else{
+                _targetHp = CurrentHp - damage;
+                _isDraining = !_isDraining;
+            }
+            
+            var delta = (float)GetProcessDeltaTime();
+            var baseDrain = 30f;
+            var vitScale = 0.2f;
+            var hpPerSec = baseDrain / (1f + Stats.Vit * vitScale);
+            var hpStep = hpPerSec * (float)delta;
+            var currentHpF = (float)CurrentHp;
+            
+            while (CurrentHp > _targetHp)
+            {
+
+                CurrentHp = Mathf.RoundToInt(currentHpF -= hpStep);
+
+                await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+                
+                _hpLabel.Clear();
+                _hpLabel.AppendText($"HP: {CurrentHp}");
+                GD.Print(CurrentHp);
+
+            }
+            _isDraining =! _isDraining;
+            return;
+
+        }
 
     }
 }

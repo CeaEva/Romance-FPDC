@@ -78,4 +78,24 @@ public partial class DummyEnemy : Node, IActor
         }
 
     }
+
+   public async void OdoDamage(int damage)
+        {
+            var tree = GetTree();
+            if (tree == null || damage <= 0)
+                return;
+
+            float hpPerSec = Stats.Vit / (Stats.Vit*2f);;
+            var targetHp = CurrentHp - damage;
+            float currentHpF = CurrentHp;
+            while (CurrentHp > targetHp)
+            {
+                CurrentHp = Mathf.RoundToInt(currentHpF -= hpPerSec);
+                await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
+                GD.Print(CurrentHp);
+
+            }
+
+
+        }
 }

@@ -106,7 +106,7 @@ namespace Combat
 
             if (_enemyList.Count == 0)
             {
-                GD.Print("Enemies dead");
+                GetParent()?.QueueFree();
                 return;
             }
 
@@ -133,7 +133,7 @@ namespace Combat
                 _enemyList.Remove(enemy);
 
             RefreshActorLists();
-            EmitSignal(SignalName.PlayerTurnFinished);
+            EmitSignal(SignalName.PlayerTurnFinished); //Let's menu nodes know when to update cursor elements 
             GD.Print("PlayerAction Signal");
         }
 
@@ -201,7 +201,8 @@ namespace Combat
                 {
                     var result = currentAct(current, i);
                     var beforeHp = target.CurrentHp;
-                    target.CurrentHp -= result.ActorDamage.Value;
+                    var damage = result.ActorDamage.Value;
+                    target.OdoDamage(damage);  //Apply damage func to target for odohealth
 
                     GD.Print(beforeHp, " current hp => ", target.CurrentHp, " ", target.Name);
                     i++;
