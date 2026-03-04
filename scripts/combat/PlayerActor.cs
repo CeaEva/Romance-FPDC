@@ -13,8 +13,10 @@ namespace Combat
         int CurrentHp { get; set; }
         string Name { get; set; }
         ActorData Stats { get; set; }
-
-        public void OdoDamage(int damage); 
+        int StanceValue { get; set; }
+        bool StanceBroken { get; set; }
+        public void AddStance(int damage, IActor actor);
+        public void Damage(int damage); 
 
     }
     public enum CombatState
@@ -48,6 +50,8 @@ namespace Combat
 
         public CombatState State { get; set; }
         public int Atb { get; set; }
+        public int StanceValue { get; set; }
+        public bool StanceBroken { get; set; }
         private CombatMenu _menu;
         private ActorData _playerStats;
         private DummyBrain _brain;
@@ -103,7 +107,7 @@ namespace Combat
 
         }
 
-        public async void OdoDamage(int damage)
+        public async void Damage(int damage)
         {
             var tree = GetTree();
             if (tree == null || damage <= 0)
@@ -141,6 +145,11 @@ namespace Combat
             _isDraining =! _isDraining;
             return;
 
+        }
+
+        public void AddStance(int damage, IActor caller)
+        {
+            StanceValue += (damage/2) + caller.Stats.Spd;
         }
 
     }

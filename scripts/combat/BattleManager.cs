@@ -2,6 +2,7 @@ using Godot;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Resources;
+using System.Runtime.Serialization.Formatters;
 
 namespace Combat
 {
@@ -21,6 +22,7 @@ namespace Combat
         readonly List<IActor> _playerList = new();
         readonly List<IActor> _enemyList = new();
         readonly Queue<ActionContext> _turnQueue = new();
+        readonly Dictionary<IActor, int> _stanceRecoveryTurns = new();
         bool _isProcessing;
         ProgressBar _atbBar;
 
@@ -68,8 +70,13 @@ namespace Combat
 
         private void AtbTick()
         {
+            PruneInvalidActors();
+
             foreach (var actor in _allActors)
             {
+                if (!IsActorUsable(actor))
+                    continue;
+
                 if (actor.State != CombatState.Wait)
                     continue;
 
@@ -82,6 +89,7 @@ namespace Combat
 
                 if (actor is DummyEnemy enemy)
                     enemy.Atb += enemy.Stats.Spd;
+
             }
 
             StateCheck();
@@ -93,11 +101,36 @@ namespace Combat
 
             foreach (IActor n in _allActors)
             {
+                if (!IsActorUsable(n))
+                    continue;
+
+                if (n.StanceValue > 0)
+                {
+                    n.StanceValue = Mathf.Max(0, n.StanceValue - (n.Stats.Spd / 2));
+                    GD.Print(n.StanceValue + n.Name);
+                }
+
+                var stanceBreakThreshold = Mathf.RoundToInt(n.Stats.MaxHp * 0.75f) + n.Stats.Vit;
+                if (n.StanceValue >= stanceBreakThreshold)
+                    n.StanceBroken = true;
+
+                if (n.StanceBroken)
+                {
+                    n.State = CombatState.Wait;
+                    n.Atb = 0;
+                    n.StanceValue = 0;
+                    n.StanceBroken = false;
+                    _stanceRecoveryTurns[n] = CalculateStanceRecoveryTurns(n);
+                }
+                
                 if (n.State != CombatState.Wait)
                     continue;
 
                 if (n.Atb >= atbMax && n is PlayerActor player)
                 {
+                    if (TryConsumeStanceRecoveryTurn(n))
+                        continue;
+
                     player.StateControl(CombatState.Menu);
                     GD.Print("Player can menu");
                 }
@@ -114,8 +147,17 @@ namespace Combat
 
             foreach (var enemy in _enemyList)
             {
+                if (!IsActorUsable(enemy))
+                {
+                    deadEnemies.Add(enemy);
+                    continue;
+                }
+
                 if (enemy.Atb >= atbMax && enemy.State != CombatState.Queued)
                 {
+                    if (TryConsumeStanceRecoveryTurn(enemy))
+                        continue;
+
                     enemy.State = CombatState.Queued;
                     GD.Print("Enemy can Tick");
                 }
@@ -130,11 +172,71 @@ namespace Combat
                 return;
 
             foreach (var enemy in deadEnemies)
+            {
+                _stanceRecoveryTurns.Remove(enemy);
                 _enemyList.Remove(enemy);
+            }
 
             RefreshActorLists();
             EmitSignal(SignalName.PlayerTurnFinished); //Let's menu nodes know when to update cursor elements 
             GD.Print("PlayerAction Signal");
+
+        }
+
+        private void PruneInvalidActors()
+        {
+            _allActors.RemoveAll(actor => !IsActorUsable(actor));
+            _playerList.RemoveAll(actor => !IsActorUsable(actor));
+            _enemyList.RemoveAll(actor => !IsActorUsable(actor));
+
+            var staleRecoveryEntries = new List<IActor>();
+            foreach (var pair in _stanceRecoveryTurns)
+            {
+                if (!IsActorUsable(pair.Key))
+                    staleRecoveryEntries.Add(pair.Key);
+            }
+
+            foreach (var actor in staleRecoveryEntries)
+                _stanceRecoveryTurns.Remove(actor);
+        }
+
+        private static bool IsActorUsable(IActor actor)
+        {
+            if (actor == null)
+                return false;
+
+            if (actor is not GodotObject godotObject)
+                return true;
+
+            if (!GodotObject.IsInstanceValid(godotObject))
+                return false;
+
+            if (actor is Node node && node.IsQueuedForDeletion())
+                return false;
+
+            return true;
+        }
+
+        private static int CalculateStanceRecoveryTurns(IActor actor)
+        {
+            return Mathf.Max(0, 3 - (actor.Stats.Vit / 10));
+        }
+
+        private bool TryConsumeStanceRecoveryTurn(IActor actor)
+        {
+            if (!_stanceRecoveryTurns.TryGetValue(actor, out var turnsRemaining) || turnsRemaining <= 0)
+                return false;
+
+            turnsRemaining--;
+            actor.Atb = 0;
+
+            if (turnsRemaining <= 0)
+                _stanceRecoveryTurns.Remove(actor);
+            else
+                _stanceRecoveryTurns[actor] = turnsRemaining;
+
+            GD.Print(actor.Name, " is stance-broken, turns left: ", turnsRemaining);
+            return true;
         }
 
         public async Task EnqueueAction(ActionContext action)
@@ -202,7 +304,8 @@ namespace Combat
                     var result = currentAct(current, i);
                     var beforeHp = target.CurrentHp;
                     var damage = result.ActorDamage.Value;
-                    target.OdoDamage(damage);  //Apply damage func to target for odohealth
+                    target.Damage(damage);  //Apply damage func to target for odohealth
+                    target.AddStance(damage, current.Caller);
 
                     GD.Print(beforeHp, " current hp => ", target.CurrentHp, " ", target.Name);
                     i++;

@@ -36,6 +36,9 @@ namespace Combat{
 
                 return;
 
+            if (_cursor.Count == 0)
+                return;
+
             if (@event.IsActionPressed("MoveUp"))
             {
 
@@ -64,6 +67,7 @@ namespace Combat{
 
         public void GetCursorElements()
         {
+            RefreshEnemyList();
             _cursor.Clear();
             _cursorIndex = 0;
                 
@@ -84,24 +88,22 @@ namespace Combat{
         private void OnActorsReady()
         {
             
-            _enemyList = _battleManager.EnemyList;
             GetCursorElements();
 
         }
      
         public void ActionSelect(string action)
         {
-            if (_cursor.Count == 0 && _battleManager != null)
-            {
-                _enemyList = _battleManager.EnemyList;
-                GetCursorElements();
-            }
+            GetCursorElements();
             _action = action;
         }
 
         protected override void UsePressed()
 
         {
+            RefreshEnemyList();
+            _cursorIndex = Mathf.Clamp(_cursorIndex, 0, Mathf.Max(0, _enemyList.Count - 1));
+
             if (_cursor.Count == 0 || _enemyList.Count == 0)
             {
                 GD.PrintErr("UsePressed called with no available targets.");
@@ -118,6 +120,43 @@ namespace Combat{
             
             void ActionSend(ActionContext action) => _battleManager.EnqueueAction(action);
 
+        }
+
+        private void RefreshEnemyList()
+        {
+            if (_battleManager == null)
+            {
+                _enemyList = new List<IActor>();
+                return;
+            }
+
+            var refreshedList = new List<IActor>();
+            foreach (var actor in _battleManager.EnemyList)
+            {
+                if (!IsActorSelectable(actor))
+                    continue;
+
+                refreshedList.Add(actor);
+            }
+
+            _enemyList = refreshedList;
+        }
+
+        private static bool IsActorSelectable(IActor actor)
+        {
+            if (actor == null || actor.State == CombatState.Dead)
+                return false;
+
+            if (actor is not GodotObject godotObject)
+                return true;
+
+            if (!GodotObject.IsInstanceValid(godotObject))
+                return false;
+
+            if (actor is Node node && node.IsQueuedForDeletion())
+                return false;
+
+            return true;
         }
 
 

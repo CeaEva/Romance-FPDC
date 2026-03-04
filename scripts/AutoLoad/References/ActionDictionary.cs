@@ -39,7 +39,7 @@ namespace Resources
                 var str = ctx.Caller.Stats.Str + ctx.Caller.Stats.Spd;
                 var target = ctx.Targets[i];
 
-                int damage = str;
+                int damage = str/4;
 
                 return new ActionResult(ActionId.Standard, new ValueTarget(damage, target));
 

@@ -24,7 +24,8 @@ public partial class DummyEnemy : Node, IActor
         get => base.Name;      // StringName -> string via implicit conversion
         set => base.Name = value; // string -> StringName via implicit conversion
     }
-
+    public int StanceValue { get; set; }
+    public bool StanceBroken { get; set; }
     private ActorData _enemyStats;
     private int _currentHp;
     private TextureRect _sprite;
@@ -79,23 +80,14 @@ public partial class DummyEnemy : Node, IActor
 
     }
 
-   public async void OdoDamage(int damage)
+   public async void Damage(int damage)
         {
-            var tree = GetTree();
-            if (tree == null || damage <= 0)
-                return;
-
-            float hpPerSec = Stats.Vit / (Stats.Vit*2f);;
-            var targetHp = CurrentHp - damage;
-            float currentHpF = CurrentHp;
-            while (CurrentHp > targetHp)
-            {
-                CurrentHp = Mathf.RoundToInt(currentHpF -= hpPerSec);
-                await ToSignal(tree, SceneTree.SignalName.ProcessFrame);
-                GD.Print(CurrentHp);
-
-            }
-
-
+            CurrentHp -= damage;
         }
+
+    public void AddStance(int damage, IActor caller)
+        {
+            StanceValue += (damage/2) + caller.Stats.Spd;
+        }
+
 }
