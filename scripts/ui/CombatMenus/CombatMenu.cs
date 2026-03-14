@@ -1,8 +1,5 @@
 using Godot;
-using System;
 using System.Collections.Generic;
-using Resources;
-using System.Diagnostics;
 
 namespace Combat
 {
@@ -45,15 +42,9 @@ namespace Combat
 
         }
         protected bool _isActive;
-        int _cursorLen;
         protected int _cursorIndex;
-        int _subCursorIndex;
         MenuState _state;
-        protected NinePatchRect _battleMenu;
-
-        DummyEnemy _dummyEnemy;
         protected BattleManager _battleManager;
-        protected List<IActor> _enemyList;
         protected List<string> _cursor = new List<string>();
         protected RichTextLabel _optionsLabel;
         protected PlayerActor _player;
@@ -71,14 +62,10 @@ namespace Combat
         public override void _Ready()
         {
             _isActive = false;
-            _battleMenu = GetNodeOrNull<NinePatchRect>("%BattleMenu");
             _state = MenuState.Main;
-            _dummyEnemy = GetNodeOrNull<DummyEnemy>("%DummyEnemy");
             _battleManager = GetNodeOrNull<BattleManager>("%BattleManager");
             _player = GetNodeOrNull<PlayerActor>("%PlayerActor");
             _subMenuSelect = GetNodeOrNull<SubMenuSelect>("%SubMenuSelect");
-            _cursorLen = _cursor.Count;
-            _enemyList = _battleManager.EnemyList;
             _cursor = ["Attack", "Items"];
 
 
@@ -126,6 +113,7 @@ namespace Combat
     
         protected virtual void UsePressed()
         {   
+            _state = MenuState.Main;
 
             switch (_cursorIndex)
             {
@@ -141,9 +129,8 @@ namespace Combat
             {
                 case MenuState.StandardAttack:
                     _player.StateControl(CombatState.Select);
-                    _subMenuSelect.ActionSelect(_cursor[_cursorIndex]);
-                    Activate(this, _subMenuSelect);
-                    _battleMenu.Visible = false;
+                    IsActive = false;
+                    _subMenuSelect?.ActionSelect(_cursor[_cursorIndex]);
                     break;
             }
 
@@ -153,8 +140,10 @@ namespace Combat
 
         protected void DrawMenu(List<string> elements, RichTextLabel label)
         {
+            if (label == null)
+                return;
 
-            _optionsLabel.Clear();
+            label.Clear();
 
             foreach (string e in elements)
             {
@@ -167,18 +156,26 @@ namespace Combat
 
         }
 
-        public void Activate(CombatMenu menu, CombatMenu nextMenu = null){
+        public void SetActivePlayer(PlayerActor player)
+        {
+            if (player == null)
+                return;
 
+            _player = player;
+            _subMenuSelect?.SetActivePlayer(player);
+        }
 
-            menu.IsActive = !menu.IsActive;
-            GD.Print(menu.IsActive);
+        public void ShowMainMenu(PlayerActor player = null)
+        {
+            if (player != null)
+                SetActivePlayer(player);
 
-            if (nextMenu != null)
-                Activate(nextMenu);
-                
+            _state = MenuState.Main;
+            _cursorIndex = 0;
+            _subMenuSelect?.CloseSelection();
+            IsActive = true;
         }
 
 
     }
 }
-

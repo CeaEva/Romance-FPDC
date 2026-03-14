@@ -22,7 +22,7 @@ data = {
 image = SubResource("Image_x6qrq")
 
 [resource]
-item/0/name = "MeshInstance3D"
+item/0/name = "DummyCell"
 item/0/mesh = SubResource("BoxMesh_jl1ib")
 item/0/mesh_transform = Transform3D(2, 0, 0, 0, 2, 0, 0, 0, 2, 0, 0, 0)
 item/0/mesh_cast_shadow = 1

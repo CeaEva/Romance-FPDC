@@ -1,8 +1,6 @@
 using Godot;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Resources;
-using System.Runtime.Serialization.Formatters;
 
 namespace Combat
 {
@@ -17,6 +15,7 @@ namespace Combat
 
         [Signal] public delegate void ActorsReadyEventHandler();
         [Signal] public delegate void PlayerTurnFinishedEventHandler();
+        [Signal] public delegate void ExtraTurnSelectionRequestedEventHandler();
 
         readonly List<IActor> _allActors = new();
         readonly List<IActor> _playerList = new();
@@ -257,14 +256,32 @@ namespace Combat
                 while (_turnQueue.Count > 0)
                 {
                     var current = _turnQueue.Peek();
-                    var executed = Execute(current);
+                    var result = Execute(current);
 
-                    if (executed)
+                    if (result.executed)
                     {
                         if (current.Caller != null)
                         {
-                            current.Caller.Atb = 0;
-                            current.Caller.State = CombatState.Wait;
+                            if (result.extraTurnGranted)
+                            {
+                                current.Caller.State = CombatState.Wait;
+
+                                if (current.Caller is PlayerActor playerCaller)
+                                {
+                                    playerCaller.Atb = 0;
+                                    EmitSignal(SignalName.ExtraTurnSelectionRequested);
+                                }
+                                else if (current.Caller is DummyEnemy enemyCaller)
+                                {
+                                    enemyCaller.Atb = 100;
+                                    enemyCaller.State = CombatState.Queued;
+                                }
+                            }
+                            else
+                            {
+                                current.Caller.Atb = 0;
+                                current.Caller.State = CombatState.Wait;
+                            }
                         }
                         else
                         {
@@ -281,37 +298,56 @@ namespace Combat
                 _isProcessing = false;
             }
 
-            bool Execute(ActionContext current)
+            (bool executed, bool extraTurnGranted) Execute(ActionContext current)
             {
                 var targets = current.Targets;
                 var i = 0;
                 var currentAct = current.SelectedAction;
+                var extraTurnGranted = false;
 
                 if (currentAct == null)
                 {
                     GD.PrintErr("EnqueueAction missing SelectedAction.");
-                    return false;
+                    return (false, false);
                 }
 
                 if (targets == null || targets.Count == 0)
                 {
                     GD.PrintErr("EnqueueAction missing Targets.");
-                    return false;
+                    return (false, false);
                 }
 
                 foreach (var target in targets)
                 {
                     var result = currentAct(current, i);
                     var beforeHp = target.CurrentHp;
+                    var beforeStance = target.StanceValue;
                     var damage = result.ActorDamage.Value;
+                    var targetInStanceRecovery = _stanceRecoveryTurns.TryGetValue(target, out var recoveryTurns) && recoveryTurns > 0;
                     target.Damage(damage);  //Apply damage func to target for odohealth
-                    target.AddStance(damage, current.Caller);
+
+                    if (!targetInStanceRecovery)
+                    {
+                        target.AddStance(damage, current.Caller);
+                        var stanceBreakThreshold = Mathf.RoundToInt(target.Stats.MaxHp * 0.75f) + target.Stats.Vit;
+                        var crossedBreakThreshold = beforeStance < stanceBreakThreshold && target.StanceValue >= stanceBreakThreshold;
+                        if (crossedBreakThreshold)
+                        {
+                            target.StanceBroken = true;
+                            extraTurnGranted = true;
+                            GD.Print($"{target.Name} stance broken by {current.Caller?.Name}; extra turn granted.");
+                        }
+                    }
+                    else
+                    {
+                        GD.Print($"{target.Name} is stance-broken (recovery {recoveryTurns}); no ET from this hit.");
+                    }
 
                     GD.Print(beforeHp, " current hp => ", target.CurrentHp, " ", target.Name);
                     i++;
                 }
 
-                return true;
+                return (true, extraTurnGranted);
             }
         }
     }

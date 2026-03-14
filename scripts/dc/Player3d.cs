@@ -22,6 +22,11 @@ namespace DC
 
         //Flags
         public bool InEncounter = false;
+        public bool IsInEncounter
+        {
+            get => InEncounter;
+            set => InEncounter = value;
+        }
 
         private readonly GodotRng _rng = new GodotRng();
         private int _stepsSinceLast;
@@ -35,6 +40,10 @@ namespace DC
         private Tween _turnTween;
         private PackedScene _combatTscn;
         private Node _combatInstance;
+
+        public Tween TurningTween => _turnTween;
+        public GridMap Grid => _grid;
+        public Node3D Node3DRoot => _node3d;
 
         public override void _Ready()
         {
@@ -55,7 +64,7 @@ namespace DC
         public override void _PhysicsProcess(double delta)
         {
 
-            PlayerMove();
+           // PlayerMove();
 
         }
 
@@ -132,7 +141,7 @@ namespace DC
 
         }
 
-        private async Task TurnTween(float targetY)
+        public async Task TurnTween(float targetY)
         {
             _turnTween?.Kill();
             _turnTween = CreateTween()
@@ -150,7 +159,7 @@ namespace DC
 
         }
 
-        private async Task MoveTween(float stepDistance)
+        public async Task MoveTween(float stepDistance)
         {
             _turnTween?.Kill();
             Vector3 forward = (-GlobalTransform.Basis.Z).Normalized();
@@ -176,7 +185,7 @@ namespace DC
 
         }
 
-        private void EncounterChance()
+        public void EncounterChance()
         {
 
             if (InEncounter) return;

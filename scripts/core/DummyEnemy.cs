@@ -71,7 +71,8 @@ public partial class DummyEnemy : Node, IActor
             case CombatState.Wait:
                 break;
             case CombatState.Queued:
-                _battleManager?.EnqueueAction(Brain.Tick(this, _battleManager));
+                if (_battleManager != null)
+                    _ = _battleManager.EnqueueAction(Brain.Tick(this, _battleManager));
                 State = CombatState.Wait;
                 Atb = 0;
                 break;
@@ -80,7 +81,7 @@ public partial class DummyEnemy : Node, IActor
 
     }
 
-   public async void Damage(int damage)
+   public void Damage(int damage)
         {
             CurrentHp -= damage;
         }

@@ -1,8 +1,5 @@
 using Godot;
 using Resources;
-using System;
-using System.Numerics;
-using System.Runtime.InteropServices;
 
 namespace Combat
 {
@@ -91,7 +88,7 @@ namespace Combat
             switch (State)
             {
                 case CombatState.Menu:
-                    _menu?.Activate(_menu);
+                    _menu?.ShowMainMenu(this);
                     break;
                 case CombatState.Select:
                     break;

@@ -1,0 +1,59 @@
+[gd_scene load_steps=10 format=4 uid="uid://d3y5umnt2vgsf"]
+
+[ext_resource type="Script" uid="uid://cjds55ow0ccpp" path="res://scripts/AutoMap/AutoMapRoot.cs" id="1_5knun"]
+[ext_resource type="Texture2D" uid="uid://c34n6hjrruyp5" path="res://assets/art/DummySprites/DefaultMapTile1.png" id="1_m6avk"]
+[ext_resource type="Script" uid="uid://4o87e4gqscjm" path="res://scripts/AutoMap/PlayerTile.cs" id="2_5knun"]
+[ext_resource type="Texture2D" uid="uid://c3wxug8fkoipw" path="res://assets/art/DummySprites/MapArrow.png" id="2_dmhk1"]
+[ext_resource type="Script" uid="uid://di8xlededvkvm" path="res://scripts/AutoMap/MapDataCompiler.cs" id="3_5knun"]
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_221pm"]
+texture = ExtResource("1_m6avk")
+0:0/0 = 0
+1:0/next_alternative_id = 2
+1:0/0 = 0
+1:0/0/custom_data_1 = true
+
+[sub_resource type="TileSet" id="TileSet_igeva"]
+custom_data_layer_0/name = "IsWalked"
+custom_data_layer_0/type = 1
+custom_data_layer_1/name = "IsCollision"
+custom_data_layer_1/type = 1
+sources/0 = SubResource("TileSetAtlasSource_221pm")
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_lhq84"]
+size = Vector2(16, 16)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5knun"]
+size = Vector2(16, 16)
+
+[node name="AutoMap" type="Node2D"]
+script = ExtResource("1_5knun")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="."]
+position = Vector2(-48, -73)
+tile_map_data = PackedByteArray("AAD9//3/AAAAAAAAAAD9//7/AAAAAAAAAAD9////AAAAAAAAAAD9/wAAAAAAAAAAAAD9/wEAAAAAAAAAAAD9/wIAAAAAAAAAAAD+//3/AAAAAAAAAAD+//7/AAAAAAAAAAD+////AAAAAAAAAAD+/wAAAAAAAAAAAAD+/wEAAAAAAAAAAAD+/wIAAAAAAAAAAAD///3/AAAAAAAAAAD///7/AAAAAAAAAAD/////AAAAAAAAAAD//wAAAAAAAAAAAAD//wEAAAAAAAAAAAD//wIAAAAAAAAAAAAAAP3/AAAAAAAAAAAAAP7/AAAAAAAAAAAAAP//AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAIAAAAAAAAAAAABAP3/AAAAAAAAAAABAP7/AAAAAAAAAAABAP//AAAAAAAAAAABAAAAAAAAAAAAAAABAAEAAAAAAAAAAAABAAIAAAAAAAAAAAACAP3/AAAAAAAAAAACAP7/AAAAAAAAAAACAP//AAAAAAAAAAACAAAAAAAAAAAAAAACAAEAAAAAAAAAAAACAAIAAAAAAAAAAAADAP3/AAAAAAAAAAADAP7/AAAAAAAAAAADAP//AAAAAAAAAAADAAAAAAAAAAAAAAADAAEAAAAAAAAAAAADAAIAAAAAAAAAAAA=")
+tile_set = SubResource("TileSet_igeva")
+
+[node name="PlayerTile" type="Area2D" parent="TileMapLayer" node_paths=PackedStringArray("TileMap", "PlayerTileSprite")]
+script = ExtResource("2_5knun")
+TileMap = NodePath("..")
+PlayerTileSprite = NodePath("CollisionShape2D/Sprite2D")
+RootPath = NodePath("../..")
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TileMapLayer/PlayerTile"]
+shape = SubResource("RectangleShape2D_lhq84")
+
+[node name="Sprite2D" type="Sprite2D" parent="TileMapLayer/PlayerTile/CollisionShape2D"]
+texture = ExtResource("2_dmhk1")
+
+[node name="Camera2D" type="Camera2D" parent="TileMapLayer/PlayerTile"]
+
+[node name="EventTile" type="Area2D" parent="TileMapLayer"]
+position = Vector2(8, -40)
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="TileMapLayer/EventTile"]
+shape = SubResource("RectangleShape2D_5knun")
+
+[node name="MapDataCompiler" type="Node" parent="." node_paths=PackedStringArray("TileMapLayer")]
+script = ExtResource("3_5knun")
+TileMapLayer = NodePath("../TileMapLayer")
